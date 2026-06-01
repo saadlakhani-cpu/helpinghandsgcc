@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Bash(find app/admin app/api/admin lib/admin middleware.ts -type f)",
+      "Bash(dir /s /b app\\\\admin app\\\\api\\\\admin lib\\\\admin middleware.ts)",
+      "Bash(find app/robots.ts app/sitemap.ts app/not-found.tsx app/subscribe/SubscribeClient.tsx app/finance-jobs app/ai-jobs lib/seo middleware.ts -type f)",
+      "Bash(dir /s /b app\\\\robots.ts app\\\\sitemap.ts app\\\\not-found.tsx app\\\\subscribe\\\\SubscribeClient.tsx app\\\\finance-jobs app\\\\ai-jobs lib\\\\seo)",
+      "Bash(npx next *)"
+    ]
+  }
+}

@@ -1,0 +1,160 @@
+import { NextRequest, NextResponse } from "next/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  normalizeCity,
+  normalizeCompany,
+  normalizeCountry,
+  normalizeSeniority,
+  normalizeTitle,
+  normalizeWorkType,
+} from "@/lib/ingest/normalize";
+import { generateJobFingerprint } from "@/lib/ingest/fingerprint";
+import { categorizeJob, type KeywordRow } from "@/lib/ingest/categorize";
+import { generateJobSlug } from "@/lib/ingest/slug";
+import { calculateFreshnessScore } from "@/lib/ingest/freshness";
+import { getSourcePriority } from "@/lib/ingest/source-priority";
+import { fetchAllJSearchJobs } from "@/lib/jsearch/fetch-jobs";
+import type { IngestResponse } from "@/lib/ingest/types";
+
+export const dynamic = "force-dynamic";
+
+export { POST as GET };
+
+export async function POST(request: NextRequest) {
+  const cronSecret = process.env.CRON_SECRET;
+  if (cronSecret) {
+    const auth = request.headers.get("authorization");
+    if (auth !== `Bearer ${cronSecret}`) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  }
+
+  try {
+    const jobs = await fetchAllJSearchJobs();
+
+    const supabase = createAdminClient();
+
+    const { data: keywords, error: keywordsError } = await supabase
+      .from("keywords")
+      .select("keyword, category, subcategory, match_field");
+
+    if (keywordsError) {
+      return NextResponse.json(
+        { error: keywordsError.message },
+        { status: 500 }
+      );
+    }
+
+    const keywordRows = (keywords ?? []) as KeywordRow[];
+
+    let inserted = 0;
+    let skipped = 0;
+
+    for (const raw of jobs) {
+      if (
+        !raw.title?.trim() ||
+        !raw.company?.trim() ||
+        !raw.apply_url?.trim() ||
+        !raw.date_posted?.trim() ||
+        isNaN(Date.parse(raw.date_posted))
+      ) {
+        skipped += 1;
+        continue;
+      }
+
+      const country = normalizeCountry(raw.country);
+      const city = normalizeCity(raw.city, country);
+      const work_type = normalizeWorkType(raw.work_type);
+      const seniority = normalizeSeniority(raw.seniority);
+      const title = normalizeTitle(raw.title);
+      const company = normalizeCompany(raw.company);
+
+      const description =
+        raw.description_snippet ??
+        raw.description ??
+        "";
+
+      const job_fingerprint = generateJobFingerprint(
+        title,
+        company,
+        city,
+        description
+      );
+
+      const { data: existing } = await supabase
+        .from("jobs")
+        .select("id")
+        .eq("job_fingerprint", job_fingerprint)
+        .maybeSingle();
+
+      if (existing) {
+        skipped += 1;
+        continue;
+      }
+
+      const { category, subcategory } = categorizeJob(
+        title,
+        description,
+        keywordRows
+      );
+
+      const slug = generateJobSlug(title, city);
+
+      const source_priority = getSourcePriority(raw.platform);
+      const date_posted = raw.date_posted;
+      const freshness_score = calculateFreshnessScore(
+        source_priority,
+        date_posted
+      );
+
+      const { error: insertError } = await supabase.from("jobs").insert({
+        title,
+        slug,
+        category,
+        subcategory,
+        company,
+        recruiter_source: raw.recruiter_source ?? null,
+        platform: raw.platform,
+        country,
+        city,
+        work_type,
+        seniority,
+        date_posted,
+        apply_url: raw.apply_url,
+        salary_range: raw.salary_range ?? null,
+        experience_years: raw.experience_years ?? null,
+        description_snippet: description || null,
+        job_fingerprint,
+        freshness_score,
+        source_priority,
+        is_active: true,
+      });
+
+      if (insertError) {
+        if (insertError.code === "23505") {
+          skipped += 1;
+          continue;
+        }
+        console.error("[cron/fetch-jobs] Insert error:", insertError);
+        skipped += 1;
+        continue;
+      }
+
+      inserted += 1;
+    }
+
+    const response: IngestResponse = {
+      received: jobs.length,
+      inserted,
+      skipped,
+    };
+
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error("[cron/fetch-jobs] error:", error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Fetch-jobs cron failed" },
+      { status: 500 }
+    );
+  }
+}
