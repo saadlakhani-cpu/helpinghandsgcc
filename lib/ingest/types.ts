@@ -13,6 +13,7 @@ export type IngestJobInput = {
   recruiter_source?: string | null;
   salary_range?: string | null;
   experience_years?: string | null;
+  is_featured?: boolean | null;
 };
 
 export type IngestResponse = {

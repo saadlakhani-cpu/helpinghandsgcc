@@ -85,11 +85,17 @@ export async function queryJobs(
   }
 
   if (params.sort === "date_posted") {
-    query = query.order("date_posted", { ascending: false });
+    query = query
+      .order("is_featured", { ascending: false })
+      .order("date_posted", { ascending: false });
   } else if (params.sort === "seniority") {
-    query = query.order("date_posted", { ascending: false });
+    query = query
+      .order("is_featured", { ascending: false })
+      .order("date_posted", { ascending: false });
   } else {
-    query = query.order("freshness_score", { ascending: false });
+    query = query
+      .order("is_featured", { ascending: false })
+      .order("freshness_score", { ascending: false });
   }
 
   query = query.range(from, to);

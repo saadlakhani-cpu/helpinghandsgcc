@@ -30,15 +30,16 @@ export function HeroSearch() {
         placeholder="Job title or keyword..."
         value={keyword}
         onChange={(e) => setKeyword(e.target.value)}
-        className="flex-1 rounded-md border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-finance focus:ring-1 focus:ring-finance"
+        className="flex-1 rounded-md border border-gray-200 px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-finance focus:ring-1 focus:ring-finance"
       />
       <select
         value={country}
         onChange={(e) => setCountry(e.target.value)}
-        className="rounded-md border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-finance focus:ring-1 focus:ring-finance sm:w-40"
+        className="rounded-md border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-finance focus:ring-1 focus:ring-finance sm:w-40"
       >
+        <option className="bg-white text-gray-900" value="">All Countries</option>
         {GULF_COUNTRIES.map((c) => (
-          <option key={c.value || "all"} value={c.value}>
+          <option className="bg-white text-gray-900" key={c.value || "all"} value={c.value}>
             {c.label}
           </option>
         ))}
@@ -46,10 +47,11 @@ export function HeroSearch() {
       <select
         value={category}
         onChange={(e) => setCategory(e.target.value)}
-        className="rounded-md border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-finance focus:ring-1 focus:ring-finance sm:w-40"
+        className="rounded-md border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-finance focus:ring-1 focus:ring-finance sm:w-40"
       >
+        <option className="bg-white text-gray-900" value="">All Categories</option>
         {CATEGORIES.map((c) => (
-          <option key={c.value || "all"} value={c.value}>
+          <option className="bg-white text-gray-900" key={c.value || "all"} value={c.value}>
             {c.label}
           </option>
         ))}

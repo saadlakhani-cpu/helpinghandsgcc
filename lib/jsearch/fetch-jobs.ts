@@ -3,6 +3,13 @@ import { cleanDescription } from "@/lib/ingest/sanitize";
 
 const JSEARCH_BASE = "https://jsearch.p.rapidapi.com/search";
 
+const FEATURED_COMPANIES = [
+  "aramco", "sabic", "pif", "neom", "maaden", "ma'aden", "acwa power",
+  "emirates", "adnoc", "dp world", "mubadala", "emaar", "qatarenergy",
+  "qatar airways", "qia", "ooredoo", "kpc", "agility", "zain", "alba",
+  "bapco", "investcorp", "oq", "pdo", "omantel", "asyad", "almarai",
+];
+
 const QUERIES = [
   "Finance Saudi Arabia",
   "Financial Controller Saudi Arabia",
@@ -11,6 +18,34 @@ const QUERIES = [
   "AI Analyst Saudi Arabia",
   "Finance Manager UAE",
   "Financial Analyst Dubai",
+  "Michael Page Finance Saudi Arabia",
+  "Robert Walters Finance Saudi Arabia",
+  "Hays Finance Saudi Arabia",
+  "Cooper Fitch Finance Saudi Arabia",
+  "Charterhouse Finance Saudi Arabia",
+  "Michael Page Finance UAE",
+  "Robert Walters Finance UAE",
+  "Financial Analyst Saudi Arabia",
+  "FP&A Analyst Saudi Arabia",
+  "FP&A Manager Saudi Arabia",
+  "Finance Manager Saudi Arabia",
+  "Finance Director Saudi Arabia",
+  "CFO Saudi Arabia",
+  "Head of Finance Saudi Arabia",
+  "Financial Analyst UAE",
+  "FP&A Analyst UAE",
+  "FP&A Manager UAE",
+  "Finance Director UAE",
+  "Head of Finance UAE",
+  "Accountant Saudi Arabia",
+  "Senior Accountant Saudi Arabia",
+  "Chief Accountant Saudi Arabia",
+  "Financial Controller Saudi Arabia",
+  "Accounting Manager Saudi Arabia",
+  "Accountant UAE",
+  "Senior Accountant UAE",
+  "Financial Controller UAE",
+  "Chief Accountant UAE",
 ];
 
 interface JSearchJob {
@@ -52,7 +87,7 @@ async function fetchQuery(
 ): Promise<IngestJobInput[]> {
   const url = new URL(JSEARCH_BASE);
   url.searchParams.set("query", query);
-  url.searchParams.set("num_pages", "1");
+  url.searchParams.set("num_pages", "5");
   url.searchParams.set("date_posted", "today");
 
   const response = await fetch(url.toString(), {
@@ -94,6 +129,9 @@ async function fetchQuery(
         description: description,
         description_snippet: snippet,
         salary_range: buildSalaryRange(job),
+        is_featured: FEATURED_COMPANIES.some((name) =>
+          job.employer_name.toLowerCase().includes(name)
+        ),
       };
     });
 }

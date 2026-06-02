@@ -127,6 +127,7 @@ export async function POST(request: NextRequest) {
         job_fingerprint,
         freshness_score,
         source_priority,
+        is_featured: raw.is_featured ?? false,
         is_active: true,
       });
 

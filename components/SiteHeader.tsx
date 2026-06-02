@@ -14,14 +14,14 @@ export function SiteHeader() {
           </span>
         </Link>
         <nav className="flex items-center gap-6 text-sm font-medium text-gray-700">
+          <Link href="/" className="transition hover:text-primary">
+            Home
+          </Link>
           <Link href="/jobs" className="transition hover:text-primary">
             Jobs
           </Link>
           <Link href="/subscribe" className="transition hover:text-primary">
             Subscribe
-          </Link>
-          <Link href="/admin" className="transition hover:text-primary">
-            Admin
           </Link>
         </nav>
       </div>
