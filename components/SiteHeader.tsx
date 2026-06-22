@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AuthNav } from "@/components/AuthNav";
 import { SITE_NAME } from "@/lib/constants";
 
 export function SiteHeader() {
@@ -26,6 +27,7 @@ export function SiteHeader() {
           <Link href="/profile" className="transition hover:text-primary">
             Profile
           </Link>
+          <AuthNav />
         </nav>
       </div>
     </header>
