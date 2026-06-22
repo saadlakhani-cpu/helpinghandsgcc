@@ -404,6 +404,10 @@ export function SubscribeClient({ mode = "subscribe" }: SubscribeClientProps) {
                       <p className="mt-1 text-xs text-gray-500">
                         Sign in before creating or updating your profile
                       </p>
+                      <p className="mt-2 text-xs text-gray-400">
+                        You may briefly see our Supabase auth domain during Google
+                        sign-in. This is our secure login provider.
+                      </p>
                     </div>
                   </button>
                 )}
