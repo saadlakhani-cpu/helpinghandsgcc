@@ -11,5 +11,5 @@ export const metadata: Metadata = {
 };
 
 export default function ProfilePage() {
-  return <SubscribeClient />;
+  return <SubscribeClient mode="profile" />;
 }

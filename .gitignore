@@ -18,6 +18,7 @@
 .DS_Store
 *.pem
 client_secret*.json
+.npm-cache/
 
 # debug
 npm-debug.log*

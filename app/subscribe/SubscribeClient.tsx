@@ -36,6 +36,10 @@ type FormState = {
 
 type Step = "choose" | "review" | "success";
 
+type SubscribeClientProps = {
+  mode?: "subscribe" | "profile";
+};
+
 // ── Static data ───────────────────────────────────────────────────────────────
 
 const GCC_COUNTRIES = ["UAE", "Saudi Arabia", "Qatar", "Kuwait", "Bahrain", "Oman"];
@@ -179,12 +183,15 @@ function TextInput({
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function SubscribeClient() {
-  const [step, setStep] = useState<Step>("choose");
+export function SubscribeClient({ mode = "subscribe" }: SubscribeClientProps) {
+  const [step, setStep] = useState<Step>(
+    mode === "profile" ? "review" : "choose"
+  );
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [resumeUrl, setResumeUrl] = useState<string | null>(null);
   const [resumeParsed, setResumeParsed] = useState<ParsedResume | null>(null);
   const [matchedCount, setMatchedCount] = useState<number | null>(null);
+  const [signedInEmail, setSignedInEmail] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -197,6 +204,7 @@ export function SubscribeClient() {
     supabase.auth.getUser().then(({ data }) => {
       const user = data.user;
       if (!user?.email) return;
+      setSignedInEmail(user.email);
 
       const displayName =
         typeof user.user_metadata?.full_name === "string"
@@ -210,8 +218,12 @@ export function SubscribeClient() {
         email: prev.email || user.email || "",
         name: prev.name || displayName,
       }));
+
+      if (mode === "profile") {
+        setStep("review");
+      }
     });
-  }, []);
+  }, [mode]);
 
   async function handleGoogleSignIn() {
     setError(null);
@@ -226,6 +238,23 @@ export function SubscribeClient() {
       if (signInError) throw signInError;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Google sign-in failed");
+    }
+  }
+
+  async function handleSignOut() {
+    setError(null);
+    try {
+      const supabase = createBrowserClient();
+      const { error: signOutError } = await supabase.auth.signOut();
+      if (signOutError) throw signOutError;
+      setSignedInEmail(null);
+      setForm(EMPTY_FORM);
+      setResumeUrl(null);
+      setResumeParsed(null);
+      setMatchedCount(null);
+      setStep(mode === "profile" ? "review" : "choose");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Sign out failed");
     }
   }
 
@@ -323,13 +352,29 @@ export function SubscribeClient() {
         <div className="mx-auto max-w-xl">
           <div className="mb-8 text-center">
             <h1 className="text-2xl font-bold text-primary sm:text-3xl">
-              Get Job Alerts
+              {mode === "profile" ? "Update Your Profile" : "Get Job Alerts"}
             </h1>
             <p className="mt-2 text-sm text-gray-500">
-              Subscribe once — receive matched Gulf Finance &amp; AI roles by
-              email.
+              {mode === "profile"
+                ? "Keep your details current so we can match you with better Gulf Finance & AI roles."
+                : "Subscribe once — receive matched Gulf Finance & AI roles by email."}
             </p>
           </div>
+
+          {signedInEmail && (
+            <div className="mb-5 flex flex-col gap-3 rounded-lg border border-green-100 bg-green-50 px-4 py-3 text-sm text-green-800 sm:flex-row sm:items-center sm:justify-between">
+              <span>
+                Signed in with Google as <strong>{signedInEmail}</strong>
+              </span>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="self-start text-xs font-semibold text-green-900 underline sm:self-auto"
+              >
+                Sign out
+              </button>
+            </div>
+          )}
 
           <div className="mb-8 flex justify-center">
             <StepIndicator step={step} />
@@ -343,23 +388,25 @@ export function SubscribeClient() {
               </h2>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={handleGoogleSignIn}
-                  className="group flex flex-col items-center gap-3 rounded-xl border-2 border-dashed border-gray-300 p-6 text-center transition hover:border-primary hover:bg-slate-50 sm:col-span-2"
-                >
-                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-xl font-bold group-hover:bg-slate-200">
-                    G
-                  </span>
-                  <div>
-                    <p className="font-semibold text-gray-800">
-                      Continue with Google
-                    </p>
-                    <p className="mt-1 text-xs text-gray-500">
-                      Sign in before creating or updating your profile
-                    </p>
-                  </div>
-                </button>
+                {!signedInEmail && (
+                  <button
+                    type="button"
+                    onClick={handleGoogleSignIn}
+                    className="group flex flex-col items-center gap-3 rounded-xl border-2 border-dashed border-gray-300 p-6 text-center transition hover:border-primary hover:bg-slate-50 sm:col-span-2"
+                  >
+                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-xl font-bold group-hover:bg-slate-200">
+                      G
+                    </span>
+                    <div>
+                      <p className="font-semibold text-gray-800">
+                        Continue with Google
+                      </p>
+                      <p className="mt-1 text-xs text-gray-500">
+                        Sign in before creating or updating your profile
+                      </p>
+                    </div>
+                  </button>
+                )}
 
                 <button
                   type="button"
@@ -384,7 +431,11 @@ export function SubscribeClient() {
                 <button
                   type="button"
                   onClick={() => {
-                    setForm(EMPTY_FORM);
+                    setForm((prev) => ({
+                      ...EMPTY_FORM,
+                      name: prev.name,
+                      email: prev.email,
+                    }));
                     setStep("review");
                   }}
                   className="group flex flex-col items-center gap-3 rounded-xl border-2 border-dashed border-gray-300 p-6 text-center transition hover:border-ai hover:bg-purple-50"
@@ -636,12 +687,12 @@ export function SubscribeClient() {
                 <button
                   type="button"
                   onClick={() => {
-                    setStep("choose");
+                    setStep(mode === "profile" ? "review" : "choose");
                     setError(null);
                   }}
                   className="text-sm text-gray-500 hover:text-primary"
                 >
-                  ← Back
+                  {mode === "profile" ? "Clear error" : "← Back"}
                 </button>
                 <button
                   type="submit"
