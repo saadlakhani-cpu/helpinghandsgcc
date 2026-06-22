@@ -18,6 +18,13 @@ import type { IngestResponse } from "@/lib/ingest/types";
 
 export async function POST(request: NextRequest) {
   try {
+    const ingestSecret = process.env.INGEST_SECRET ?? process.env.CRON_SECRET;
+    const authHeader = request.headers.get("authorization") ?? "";
+
+    if (!ingestSecret || authHeader !== `Bearer ${ingestSecret}`) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     const jobs = parseIngestBody(body);
 

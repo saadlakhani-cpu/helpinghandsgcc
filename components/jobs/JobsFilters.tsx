@@ -88,6 +88,7 @@ export function JobsFilters({
       experience: "",
       date_range: "",
       platform: "",
+      company: "",
       q: "",
       sort: filters.sort,
       page: "1",
@@ -270,6 +271,21 @@ export function JobsFilters({
           {filterOptions.platforms.map((platform) => (
             <option key={platform} value={platform}>
               {platform}
+            </option>
+          ))}
+        </select>
+      </FilterGroup>
+
+      <FilterGroup label="Company">
+        <select
+          value={filters.company}
+          onChange={(e) => update("company", e.target.value)}
+          className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm outline-none focus:border-finance focus:ring-1 focus:ring-finance"
+        >
+          <option value="">All companies</option>
+          {filterOptions.companies.map((company) => (
+            <option key={company} value={company}>
+              {company}
             </option>
           ))}
         </select>

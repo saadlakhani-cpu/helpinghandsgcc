@@ -10,6 +10,7 @@ export type JobsFilterState = {
   experience: string;
   date_range: string;
   platform: string;
+  company: string;
   q: string;
   sort: string;
   page: string;
@@ -34,6 +35,7 @@ export function filtersFromSearchParams(
     experience: get("experience"),
     date_range: get("date_range"),
     platform: get("platform"),
+    company: get("company"),
     q: get("q"),
     sort: get("sort") || "freshness",
     page: get("page") || "1",
@@ -55,6 +57,7 @@ export function buildJobsSearchParams(
     ["experience", filters.experience],
     ["date_range", filters.date_range],
     ["platform", filters.platform],
+    ["company", filters.company],
     ["q", filters.q],
     ["sort", filters.sort],
     ["page", filters.page],
@@ -85,6 +88,7 @@ export function toQueryParams(filters: JobsFilterState): JobsQueryParams {
   if (filters.seniority) params.seniority = filters.seniority;
   if (filters.experience) params.experience = filters.experience;
   if (filters.platform) params.platform = filters.platform;
+  if (filters.company) params.company = filters.company;
   if (filters.date_range) params.date_range = filters.date_range;
   if (filters.q) params.q = filters.q;
 

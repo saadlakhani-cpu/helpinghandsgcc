@@ -17,7 +17,7 @@ export async function getFilterOptions(): Promise<FilterOptions> {
 
   const [keywordsRes, platformsRes] = await Promise.all([
     supabase.from("keywords").select("category, subcategory"),
-    supabase.from("jobs").select("platform").eq("is_active", true),
+    supabase.from("jobs").select("platform, company").eq("is_active", true),
   ]);
 
   const financeSet = new Set<string>();
@@ -32,9 +32,13 @@ export async function getFilterOptions(): Promise<FilterOptions> {
   }
 
   const platformSet = new Set<string>(DEFAULT_PLATFORMS);
+  const companySet = new Set<string>();
   for (const row of platformsRes.data ?? []) {
     if (row.platform?.trim()) {
       platformSet.add(row.platform.trim());
+    }
+    if (row.company?.trim()) {
+      companySet.add(row.company.trim());
     }
   }
 
@@ -44,5 +48,6 @@ export async function getFilterOptions(): Promise<FilterOptions> {
     financeSubcategories: Array.from(financeSet).sort(sortAlpha),
     aiSubcategories: Array.from(aiSet).sort(sortAlpha),
     platforms: Array.from(platformSet).sort(sortAlpha),
+    companies: Array.from(companySet).sort(sortAlpha),
   };
 }

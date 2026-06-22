@@ -23,6 +23,9 @@ export function SiteHeader() {
           <Link href="/subscribe" className="transition hover:text-primary">
             Subscribe
           </Link>
+          <Link href="/profile" className="transition hover:text-primary">
+            Profile
+          </Link>
         </nav>
       </div>
     </header>

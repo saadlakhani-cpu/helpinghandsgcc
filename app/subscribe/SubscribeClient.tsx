@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { createBrowserClient } from "@/lib/supabase/client";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -190,6 +191,44 @@ export function SubscribeClient() {
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    const supabase = createBrowserClient();
+
+    supabase.auth.getUser().then(({ data }) => {
+      const user = data.user;
+      if (!user?.email) return;
+
+      const displayName =
+        typeof user.user_metadata?.full_name === "string"
+          ? user.user_metadata.full_name
+          : typeof user.user_metadata?.name === "string"
+            ? user.user_metadata.name
+            : "";
+
+      setForm((prev) => ({
+        ...prev,
+        email: prev.email || user.email || "",
+        name: prev.name || displayName,
+      }));
+    });
+  }, []);
+
+  async function handleGoogleSignIn() {
+    setError(null);
+    try {
+      const supabase = createBrowserClient();
+      const origin = window.location.origin;
+      const returnPath = window.location.pathname || "/subscribe";
+      const { error: signInError } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${origin}${returnPath}` },
+      });
+      if (signInError) throw signInError;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Google sign-in failed");
+    }
+  }
+
   function setField<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
@@ -305,6 +344,25 @@ export function SubscribeClient() {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <button
+                  type="button"
+                  onClick={handleGoogleSignIn}
+                  className="group flex flex-col items-center gap-3 rounded-xl border-2 border-dashed border-gray-300 p-6 text-center transition hover:border-primary hover:bg-slate-50 sm:col-span-2"
+                >
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-xl font-bold group-hover:bg-slate-200">
+                    G
+                  </span>
+                  <div>
+                    <p className="font-semibold text-gray-800">
+                      Continue with Google
+                    </p>
+                    <p className="mt-1 text-xs text-gray-500">
+                      Sign in before creating or updating your profile
+                    </p>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
                   className="group flex flex-col items-center gap-3 rounded-xl border-2 border-dashed border-gray-300 p-6 text-center transition hover:border-finance hover:bg-blue-50 disabled:opacity-60"
@@ -324,6 +382,7 @@ export function SubscribeClient() {
                 </button>
 
                 <button
+                  type="button"
                   onClick={() => {
                     setForm(EMPTY_FORM);
                     setStep("review");

@@ -90,6 +90,11 @@ export function parseJobsQuery(
     params.platform = platform.trim();
   }
 
+  const company = searchParams.get("company");
+  if (company?.trim()) {
+    params.company = company.trim();
+  }
+
   const q = searchParams.get("q");
   if (q?.trim()) {
     params.q = q.trim();

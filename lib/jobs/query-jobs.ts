@@ -69,6 +69,9 @@ export async function queryJobs(
   if (params.platform) {
     query = query.ilike("platform", `%${params.platform}%`);
   }
+  if (params.company) {
+    query = query.ilike("company", `%${params.company}%`);
+  }
   if (params.q) {
     const escaped = params.q.replace(/[%_,]/g, "");
     const term = `%${escaped}%`;

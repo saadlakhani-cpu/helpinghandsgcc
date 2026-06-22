@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { matchJobsForSubscriber } from "@/lib/alerts/match-jobs";
+import { checkRateLimit } from "@/lib/security/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,23 @@ type SubscribePayload = {
 
 export async function POST(request: NextRequest) {
   try {
+    const forwardedFor = request.headers.get("x-forwarded-for") ?? "";
+    const ip =
+      forwardedFor.split(",")[0]?.trim() ||
+      request.headers.get("x-real-ip") ||
+      "unknown";
+    const rateLimit = checkRateLimit(`subscribe:${ip}`, 10, 60 * 60 * 1000);
+
+    if (rateLimit.limited) {
+      return NextResponse.json(
+        { error: "Too many subscription attempts. Please try again later." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(rateLimit.retryAfter) },
+        }
+      );
+    }
+
     const body = (await request.json()) as Partial<SubscribePayload>;
 
     if (!body.email?.trim() || !body.name?.trim()) {

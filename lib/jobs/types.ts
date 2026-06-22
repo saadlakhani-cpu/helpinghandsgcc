@@ -31,6 +31,7 @@ export type JobsQueryParams = {
   seniority?: string;
   experience?: string;
   platform?: string;
+  company?: string;
   date_range?: string;
   q?: string;
   page: number;
@@ -42,6 +43,7 @@ export type FilterOptions = {
   financeSubcategories: string[];
   aiSubcategories: string[];
   platforms: string[];
+  companies: string[];
 };
 
 export type JobsListResponse = {
