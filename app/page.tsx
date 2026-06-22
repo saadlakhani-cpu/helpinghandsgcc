@@ -3,6 +3,7 @@ import { HeroSearch } from "@/components/HeroSearch";
 import { JobCard } from "@/components/JobCard";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { CONTACT_EMAIL, CV_REVIEW_FORM_URL, RECRUITER_FORM_URL } from "@/lib/constants";
 import { getHomePageData } from "@/lib/jobs/home-data";
 import { formatHoursAgo } from "@/lib/utils/date";
 
@@ -45,6 +46,75 @@ export default async function HomePage() {
             </span>
             <span className="hidden text-gray-300 sm:inline">|</span>
             <span>Updated {formatHoursAgo(lastUpdated)}</span>
+          </div>
+        </section>
+
+        {/* Candidate and recruiter actions */}
+        <section className="bg-amber-50 px-4 py-10 sm:px-6">
+          <div className="mx-auto max-w-6xl">
+            <div className="mb-5 text-center">
+              <p className="text-sm font-semibold uppercase tracking-wide text-finance">
+                New career support
+              </p>
+              <h2 className="mt-2 text-2xl font-bold text-primary">
+                Review CVs and screen applicants with Helping Hands GCC
+              </h2>
+              <p className="mx-auto mt-2 max-w-3xl text-sm text-gray-600">
+                Candidates can request a CV review, and companies or recruiters can
+                register interest to post jobs and receive initial CV screening.
+              </p>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="rounded-lg border border-amber-200 bg-white p-5 shadow-sm">
+                <p className="text-sm font-semibold text-finance">For candidates</p>
+                <h3 className="mt-2 text-xl font-bold text-primary">
+                  Get your CV reviewed
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-gray-600">
+                  Upload your CV through our request form. We will review it for
+                  Gulf finance and AI job opportunities and help you improve how it
+                  presents your experience.
+                </p>
+                <Link
+                  href={CV_REVIEW_FORM_URL}
+                  className="mt-4 inline-flex rounded-md bg-finance px-5 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-700"
+                >
+                  Request CV review
+                </Link>
+              </div>
+
+              <div className="rounded-lg border border-sky-200 bg-white p-5 shadow-sm">
+                <p className="text-sm font-semibold text-ai">
+                  For companies and recruiters
+                </p>
+                <h3 className="mt-2 text-xl font-bold text-primary">
+                  Register to post jobs
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-gray-600">
+                  Share your hiring needs and post finance or AI roles. Initial CV
+                  screening can be offered free while the recruiter workflow is
+                  being launched.
+                </p>
+                <Link
+                  href={RECRUITER_FORM_URL}
+                  className="mt-4 inline-flex rounded-md bg-ai px-5 py-2.5 text-sm font-medium text-white transition hover:bg-sky-700"
+                >
+                  Register as recruiter
+                </Link>
+              </div>
+            </div>
+
+            <p className="mt-4 text-center text-xs text-gray-500">
+              Prefer email? Contact us at{" "}
+              <a
+                className="font-medium text-primary hover:underline"
+                href={`mailto:${CONTACT_EMAIL}`}
+              >
+                {CONTACT_EMAIL}
+              </a>
+              .
+            </p>
           </div>
         </section>
 
