@@ -159,6 +159,7 @@ export async function POST(request: NextRequest) {
         work_type,
         seniority,
         date_posted,
+        date_scraped: new Date().toISOString(),
         apply_url: raw.apply_url,
         salary_range: raw.salary_range ?? null,
         experience_years: raw.experience_years ?? null,

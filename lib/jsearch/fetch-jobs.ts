@@ -11,53 +11,53 @@ const FEATURED_COMPANIES = [
 ];
 
 const LAYER_1_QUERIES = [
-  "Finance Saudi Arabia",
-  "Financial Controller Saudi Arabia",
-  "Accountant Saudi Arabia",
-  "CFO Saudi Arabia",
-  "AI Analyst Saudi Arabia",
-  "Finance Manager UAE",
-  "Financial Analyst Dubai",
-  "Financial Analyst Saudi Arabia",
-  "FP&A Manager Saudi Arabia",
-  "Finance Manager Saudi Arabia",
-  "Finance Director Saudi Arabia",
-  "Head of Finance Saudi Arabia",
-  "Financial Analyst UAE",
-  "FP&A Manager UAE",
-  "Finance Director UAE",
-  "Head of Finance UAE",
-  "Financial Controller UAE",
+  "finance jobs in Saudi Arabia",
+  "financial controller jobs in Riyadh",
+  "accountant jobs in Riyadh",
+  "CFO jobs in Saudi Arabia",
+  "AI analyst jobs in Saudi Arabia",
+  "finance manager jobs in Dubai",
+  "financial analyst jobs in Dubai",
+  "financial analyst jobs in Saudi Arabia",
+  "FP&A manager jobs in Riyadh",
+  "finance manager jobs in Riyadh",
+  "finance director jobs in Saudi Arabia",
+  "head of finance jobs in Saudi Arabia",
+  "financial analyst jobs in United Arab Emirates",
+  "FP&A manager jobs in Dubai",
+  "finance director jobs in Dubai",
+  "head of finance jobs in Dubai",
+  "financial controller jobs in Dubai",
 ];
 
 const LAYER_2_QUERIES = [
-  "Michael Page Finance Saudi Arabia",
-  "Robert Walters Finance Saudi Arabia",
-  "Hays Finance Saudi Arabia",
-  "Cooper Fitch Finance Saudi Arabia",
-  "Charterhouse Finance Saudi Arabia",
-  "Michael Page Finance UAE",
-  "Robert Walters Finance UAE",
-  "FP&A Analyst Saudi Arabia",
-  "Senior Accountant Saudi Arabia",
-  "Chief Accountant Saudi Arabia",
-  "Accounting Manager Saudi Arabia",
-  "Accountant UAE",
-  "Senior Accountant UAE",
-  "Chief Accountant UAE",
+  "Michael Page finance jobs in Saudi Arabia",
+  "Robert Walters finance jobs in Saudi Arabia",
+  "Hays finance jobs in Saudi Arabia",
+  "Cooper Fitch finance jobs in Saudi Arabia",
+  "Charterhouse finance jobs in Saudi Arabia",
+  "Michael Page finance jobs in Dubai",
+  "Robert Walters finance jobs in Dubai",
+  "FP&A analyst jobs in Saudi Arabia",
+  "senior accountant jobs in Riyadh",
+  "chief accountant jobs in Riyadh",
+  "accounting manager jobs in Saudi Arabia",
+  "accountant jobs in Dubai",
+  "senior accountant jobs in Dubai",
+  "chief accountant jobs in Dubai",
 ];
 
 const LAYER_3_QUERIES = [
-  "Finance Qatar",
-  "Finance Kuwait",
-  "Finance Bahrain",
-  "Finance Oman",
-  "AI UAE",
-  "AI Saudi Arabia",
-  "Treasury Saudi Arabia",
-  "Tax Saudi Arabia",
-  "Audit Saudi Arabia",
-  "GRC Saudi Arabia",
+  "finance jobs in Qatar",
+  "finance jobs in Kuwait",
+  "finance jobs in Bahrain",
+  "finance jobs in Oman",
+  "AI jobs in United Arab Emirates",
+  "AI jobs in Saudi Arabia",
+  "treasury jobs in Saudi Arabia",
+  "tax jobs in Saudi Arabia",
+  "audit jobs in Saudi Arabia",
+  "GRC jobs in Saudi Arabia",
 ];
 
 export type JSearchLayer = "1" | "2" | "3" | "all";
@@ -131,6 +131,7 @@ function inferCountryParam(query: string): string {
   if (normalized.includes("saudi") || normalized.includes("riyadh")) return "sa";
   if (
     normalized.includes("uae") ||
+    normalized.includes("united arab emirates") ||
     normalized.includes("dubai") ||
     normalized.includes("abu dhabi")
   ) {
@@ -276,7 +277,7 @@ export async function fetchAllJSearchJobsWithDebug(
   const queries = allQueries.slice(queryOffset, queryOffset + queryLimit);
   const datePosted =
     options.datePosted ?? DATE_POSTED_BY_LAYER[layer] ?? DATE_POSTED_BY_LAYER.all;
-  const numPages = Math.min(5, Math.max(1, options.numPages ?? 2));
+  const numPages = Math.min(5, Math.max(1, options.numPages ?? 1));
   const debug: JSearchQueryDebug[] = [];
   const seen = new Set<string>();
   const results: IngestJobInput[] = [];
