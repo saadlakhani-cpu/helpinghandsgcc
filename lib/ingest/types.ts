@@ -20,4 +20,5 @@ export type IngestResponse = {
   received: number;
   inserted: number;
   skipped: number;
+  layer?: string;
 };

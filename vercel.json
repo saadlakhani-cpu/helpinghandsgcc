@@ -1,8 +1,24 @@
 {
   "crons": [
     {
-      "path": "/api/cron/fetch-jobs",
-      "schedule": "0 5 * * *"
+      "path": "/api/cron/fetch-jobs/layer1",
+      "schedule": "0 3 * * 1-4,6"
+    },
+    {
+      "path": "/api/cron/fetch-jobs/layer1",
+      "schedule": "0 15 * * 1-4,6"
+    },
+    {
+      "path": "/api/cron/fetch-jobs/layer2",
+      "schedule": "0 3 * * 1"
+    },
+    {
+      "path": "/api/cron/fetch-jobs/layer2",
+      "schedule": "0 15 * * 5"
+    },
+    {
+      "path": "/api/cron/fetch-jobs/layer3",
+      "schedule": "0 3 * * 3"
     },
     {
       "path": "/api/cron/rematch-subscribers",

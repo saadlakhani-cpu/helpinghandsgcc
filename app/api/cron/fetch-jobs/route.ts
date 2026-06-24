@@ -13,12 +13,24 @@ import { categorizeJob, type KeywordRow } from "@/lib/ingest/categorize";
 import { generateJobSlug } from "@/lib/ingest/slug";
 import { calculateFreshnessScore } from "@/lib/ingest/freshness";
 import { getSourcePriority } from "@/lib/ingest/source-priority";
-import { fetchAllJSearchJobs } from "@/lib/jsearch/fetch-jobs";
+import {
+  fetchAllJSearchJobs,
+  type JSearchLayer,
+} from "@/lib/jsearch/fetch-jobs";
 import type { IngestResponse } from "@/lib/ingest/types";
 
 export const dynamic = "force-dynamic";
 
 export { POST as GET };
+
+function getJSearchLayer(request: NextRequest): JSearchLayer {
+  const layer = request.nextUrl.searchParams.get("layer");
+  const pathname = request.nextUrl.pathname;
+  if (pathname.endsWith("/layer1")) return "1";
+  if (pathname.endsWith("/layer2")) return "2";
+  if (pathname.endsWith("/layer3")) return "3";
+  return layer === "1" || layer === "2" || layer === "3" ? layer : "all";
+}
 
 export async function POST(request: NextRequest) {
   const cronSecret = process.env.CRON_SECRET;
@@ -30,7 +42,8 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const jobs = await fetchAllJSearchJobs();
+    const layer = getJSearchLayer(request);
+    const jobs = await fetchAllJSearchJobs(layer);
 
     const supabase = createAdminClient();
 
@@ -148,6 +161,7 @@ export async function POST(request: NextRequest) {
       received: jobs.length,
       inserted,
       skipped,
+      layer,
     };
 
     return NextResponse.json(response);

@@ -10,7 +10,7 @@ const FEATURED_COMPANIES = [
   "bapco", "investcorp", "oq", "pdo", "omantel", "asyad", "almarai",
 ];
 
-const QUERIES = [
+const LAYER_1_QUERIES = [
   "Finance Saudi Arabia",
   "Financial Controller Saudi Arabia",
   "Accountant Saudi Arabia",
@@ -18,6 +18,19 @@ const QUERIES = [
   "AI Analyst Saudi Arabia",
   "Finance Manager UAE",
   "Financial Analyst Dubai",
+  "Financial Analyst Saudi Arabia",
+  "FP&A Manager Saudi Arabia",
+  "Finance Manager Saudi Arabia",
+  "Finance Director Saudi Arabia",
+  "Head of Finance Saudi Arabia",
+  "Financial Analyst UAE",
+  "FP&A Manager UAE",
+  "Finance Director UAE",
+  "Head of Finance UAE",
+  "Financial Controller UAE",
+];
+
+const LAYER_2_QUERIES = [
   "Michael Page Finance Saudi Arabia",
   "Robert Walters Finance Saudi Arabia",
   "Hays Finance Saudi Arabia",
@@ -25,25 +38,36 @@ const QUERIES = [
   "Charterhouse Finance Saudi Arabia",
   "Michael Page Finance UAE",
   "Robert Walters Finance UAE",
-  "Financial Analyst Saudi Arabia",
   "FP&A Analyst Saudi Arabia",
-  "FP&A Manager Saudi Arabia",
-  "Finance Manager Saudi Arabia",
-  "Finance Director Saudi Arabia",
-  "Head of Finance Saudi Arabia",
-  "Financial Analyst UAE",
-  "FP&A Analyst UAE",
-  "FP&A Manager UAE",
-  "Finance Director UAE",
-  "Head of Finance UAE",
   "Senior Accountant Saudi Arabia",
   "Chief Accountant Saudi Arabia",
   "Accounting Manager Saudi Arabia",
   "Accountant UAE",
   "Senior Accountant UAE",
-  "Financial Controller UAE",
   "Chief Accountant UAE",
 ];
+
+const LAYER_3_QUERIES = [
+  "Finance Qatar",
+  "Finance Kuwait",
+  "Finance Bahrain",
+  "Finance Oman",
+  "AI UAE",
+  "AI Saudi Arabia",
+  "Treasury Saudi Arabia",
+  "Tax Saudi Arabia",
+  "Audit Saudi Arabia",
+  "GRC Saudi Arabia",
+];
+
+export type JSearchLayer = "1" | "2" | "3" | "all";
+
+const QUERY_LAYERS: Record<JSearchLayer, string[]> = {
+  "1": LAYER_1_QUERIES,
+  "2": LAYER_2_QUERIES,
+  "3": LAYER_3_QUERIES,
+  all: [...LAYER_1_QUERIES, ...LAYER_2_QUERIES, ...LAYER_3_QUERIES],
+};
 
 interface JSearchJob {
   employer_name: string;
@@ -133,15 +157,18 @@ async function fetchQuery(
     });
 }
 
-export async function fetchAllJSearchJobs(): Promise<IngestJobInput[]> {
+export async function fetchAllJSearchJobs(
+  layer: JSearchLayer = "all"
+): Promise<IngestJobInput[]> {
   const apiKey = process.env.RAPIDAPI_KEY;
   if (!apiKey) throw new Error("RAPIDAPI_KEY env var is not set");
 
   const todayISO = new Date().toISOString().split("T")[0];
+  const queries = QUERY_LAYERS[layer] ?? QUERY_LAYERS.all;
   const seen = new Set<string>();
   const results: IngestJobInput[] = [];
 
-  for (const query of QUERIES) {
+  for (const query of queries) {
     const jobs = await fetchQuery(query, todayISO, apiKey);
     for (const job of jobs) {
       if (!seen.has(job.apply_url)) {
