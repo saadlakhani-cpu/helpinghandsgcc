@@ -29,6 +29,7 @@ export async function getHomePageData(): Promise<HomePageData> {
         .select("*")
         .eq("is_active", true)
         .eq("category", "Finance")
+        .order("date_scraped", { ascending: false })
         .order("freshness_score", { ascending: false })
         .limit(8),
       supabase
@@ -36,6 +37,7 @@ export async function getHomePageData(): Promise<HomePageData> {
         .select("*")
         .eq("is_active", true)
         .eq("category", "AI")
+        .order("date_scraped", { ascending: false })
         .order("freshness_score", { ascending: false })
         .limit(8),
       supabase

@@ -120,6 +120,7 @@ export async function POST(request: NextRequest) {
         work_type: post.work_type,
         seniority: post.seniority,
         date_posted: new Date().toISOString().slice(0, 10),
+        date_scraped: new Date().toISOString(),
         apply_url: applyUrl,
         is_active: true,
         description_snippet: description.slice(0, 1200),
