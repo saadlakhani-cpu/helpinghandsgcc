@@ -57,17 +57,17 @@ export async function POST(request: NextRequest) {
       "fetch-jobs-layer-2": "/api/cron/fetch-jobs/layer2",
       "fetch-jobs-layer-3": "/api/cron/fetch-jobs/layer3",
       "fetch-finance-batch-1":
-        "/api/cron/fetch-jobs/layer1?date_posted=all&offset=0&limit=5&pages=1",
+        "/api/cron/fetch-jobs/layer1?date_posted=week&offset=0&limit=5&pages=1",
       "fetch-finance-batch-2":
-        "/api/cron/fetch-jobs/layer1?date_posted=all&offset=5&limit=5&pages=1",
+        "/api/cron/fetch-jobs/layer1?date_posted=week&offset=5&limit=5&pages=1",
       "fetch-finance-batch-3":
-        "/api/cron/fetch-jobs/layer1?date_posted=all&offset=10&limit=5&pages=1",
+        "/api/cron/fetch-jobs/layer1?date_posted=week&offset=10&limit=5&pages=1",
       "fetch-finance-batch-4":
-        "/api/cron/fetch-jobs/layer1?date_posted=all&offset=15&limit=5&pages=1",
+        "/api/cron/fetch-jobs/layer1?date_posted=week&offset=15&limit=5&pages=1",
       "fetch-ai-jobs":
         "/api/cron/fetch-jobs/ai?date_posted=week&offset=0&limit=6&pages=1",
       "fetch-gcc-wider":
-        "/api/cron/fetch-jobs/layer3?date_posted=all&offset=0&limit=4&pages=1",
+        "/api/cron/fetch-jobs/layer3?date_posted=week&offset=0&limit=4&pages=1",
     };
 
     const res = await fetch(`${base}${actionPaths[action]}`, {
