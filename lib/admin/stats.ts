@@ -7,6 +7,7 @@ export type AdminStats = {
   subscribers: { total: number; last_7d: number };
   matches: { total: number; pending: number; notified: number };
   alerts: { total: number; last_24h: number };
+  recruiters: { profiles: number; job_posts: number; pending_jobs: number };
 };
 
 export type SourceRow = {
@@ -53,6 +54,20 @@ export type RecentMatchRow = {
   job_slug: string;
 };
 
+export type RecruiterJobPostRow = {
+  id: string;
+  title: string;
+  category: string;
+  company: string;
+  country: string;
+  city: string;
+  status: string;
+  screening_requested: boolean;
+  created_at: string;
+  contact_name: string;
+  work_email: string;
+};
+
 // ── Helper ────────────────────────────────────────────────────────────────────
 
 function unique(ids: string[]): string[] {
@@ -87,6 +102,9 @@ export async function getAdminStats(): Promise<AdminStats> {
     notifiedMatchesRes,
     totalAlertsRes,
     recent24hAlertsRes,
+    recruiterProfilesRes,
+    recruiterJobPostsRes,
+    pendingRecruiterJobsRes,
   ] = await Promise.all([
     supabase.from("jobs").select("id", { count: "exact", head: true }),
     supabase
@@ -122,6 +140,16 @@ export async function getAdminStats(): Promise<AdminStats> {
       .from("alerts_log")
       .select("id", { count: "exact", head: true })
       .gte("sent_at", since24h.toISOString()),
+    supabase
+      .from("recruiter_profiles")
+      .select("id", { count: "exact", head: true }),
+    supabase
+      .from("recruiter_job_posts")
+      .select("id", { count: "exact", head: true }),
+    supabase
+      .from("recruiter_job_posts")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending_review"),
   ]);
 
   return {
@@ -143,6 +171,11 @@ export async function getAdminStats(): Promise<AdminStats> {
     alerts: {
       total: totalAlertsRes.count ?? 0,
       last_24h: recent24hAlertsRes.count ?? 0,
+    },
+    recruiters: {
+      profiles: recruiterProfilesRes.count ?? 0,
+      job_posts: recruiterJobPostsRes.count ?? 0,
+      pending_jobs: pendingRecruiterJobsRes.count ?? 0,
     },
   };
 }
@@ -264,6 +297,65 @@ export async function getRecentMatches(limit = 25): Promise<RecentMatchRow[]> {
       subscriber_email: subMap[m.subscriber_id]?.email ?? "",
       job_title: jobMap[m.job_id]?.title ?? "–",
       job_slug: jobMap[m.job_id]?.slug ?? "",
+    })
+  );
+}
+
+export async function getRecruiterJobPosts(
+  limit = 25
+): Promise<RecruiterJobPostRow[]> {
+  const supabase = createAdminClient();
+
+  const { data: posts } = await supabase
+    .from("recruiter_job_posts")
+    .select(
+      "id, title, category, company, country, city, status, screening_requested, created_at, recruiter_profile_id"
+    )
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (!posts || posts.length === 0) return [];
+
+  const profileIds = unique(
+    posts.map((post: { recruiter_profile_id: string }) => post.recruiter_profile_id)
+  );
+
+  const { data: profiles } = await supabase
+    .from("recruiter_profiles")
+    .select("id, contact_name, work_email")
+    .in("id", profileIds);
+
+  type ProfileRow = { id: string; contact_name: string; work_email: string };
+
+  const profileMap: Record<string, ProfileRow> = {};
+  (profiles ?? []).forEach((profile: ProfileRow) => {
+    profileMap[profile.id] = profile;
+  });
+
+  return posts.map(
+    (post: {
+      id: string;
+      title: string;
+      category: string;
+      company: string;
+      country: string;
+      city: string;
+      status: string;
+      screening_requested: boolean;
+      created_at: string;
+      recruiter_profile_id: string;
+    }) => ({
+      id: post.id,
+      title: post.title,
+      category: post.category,
+      company: post.company,
+      country: post.country,
+      city: post.city,
+      status: post.status,
+      screening_requested: post.screening_requested,
+      created_at: post.created_at,
+      contact_name: profileMap[post.recruiter_profile_id]?.contact_name ?? "-",
+      work_email: profileMap[post.recruiter_profile_id]?.work_email ?? "",
     })
   );
 }

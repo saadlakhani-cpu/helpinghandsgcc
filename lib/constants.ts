@@ -2,10 +2,10 @@ export const SITE_NAME = "Gulf Finance & AI Jobs";
 export const CONTACT_EMAIL = "adminhhgcc@gmail.com";
 export const CV_REVIEW_FORM_URL =
   process.env.NEXT_PUBLIC_CV_REVIEW_FORM_URL ||
-  `mailto:${CONTACT_EMAIL}?subject=CV%20Review%20Request`;
+  "https://docs.google.com/forms/d/e/1FAIpQLScLE8DDCoR5fwD-DCp0eFnKqjWj1G19nvsXX0_eIQNUlFJZDQ/viewform?usp=header";
 export const RECRUITER_FORM_URL =
   process.env.NEXT_PUBLIC_RECRUITER_FORM_URL ||
-  `mailto:${CONTACT_EMAIL}?subject=Recruiter%20Registration%20Request`;
+  "/recruiters";
 
 export const GULF_COUNTRIES = [
   { value: "", label: "All Countries" },

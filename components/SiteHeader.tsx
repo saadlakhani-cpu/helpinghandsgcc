@@ -24,6 +24,9 @@ export function SiteHeader() {
           <Link href="/subscribe" className="transition hover:text-primary">
             Subscribe
           </Link>
+          <Link href="/recruiters" className="transition hover:text-primary">
+            For Recruiters
+          </Link>
           <Link href="/profile" className="transition hover:text-primary">
             Profile
           </Link>

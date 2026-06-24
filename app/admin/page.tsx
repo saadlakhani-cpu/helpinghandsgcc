@@ -4,6 +4,8 @@ import {
   getRecentAlerts,
   getRecentJobs,
   getRecentMatches,
+  getRecruiterJobPosts,
+  type RecruiterJobPostRow,
   getSources,
   type RecentAlertRow,
   type RecentJobRow,
@@ -329,16 +331,83 @@ function AlertsLogTable({ alerts }: { alerts: RecentAlertRow[] }) {
   );
 }
 
+function RecruiterJobsTable({ posts }: { posts: RecruiterJobPostRow[] }) {
+  return (
+    <TableWrap>
+      <table className="min-w-full">
+        <thead className="border-b border-gray-100 bg-gray-50">
+          <tr>
+            <Th>Job</Th>
+            <Th>Company</Th>
+            <Th>Contact</Th>
+            <Th>Category</Th>
+            <Th>Location</Th>
+            <Th>Status</Th>
+            <Th>Screening</Th>
+            <Th>Submitted</Th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-100">
+          {posts.length === 0 ? (
+            <EmptyRow cols={8} message="No recruiter job posts yet" />
+          ) : (
+            posts.map((post) => (
+              <tr key={post.id} className="hover:bg-gray-50">
+                <Td className="max-w-xs">
+                  <span className="line-clamp-1 font-medium">{post.title}</span>
+                </Td>
+                <Td className="max-w-[140px] truncate">{post.company}</Td>
+                <Td>
+                  <p className="font-medium">{post.contact_name}</p>
+                  <p className="text-xs text-gray-400">{post.work_email}</p>
+                </Td>
+                <Td>
+                  <Badge
+                    text={post.category}
+                    color={
+                      post.category === "Finance"
+                        ? "bg-blue-50 text-finance"
+                        : "bg-purple-50 text-ai"
+                    }
+                  />
+                </Td>
+                <Td>
+                  {post.city}, {post.country}
+                </Td>
+                <Td>
+                  <Badge
+                    text={post.status.replace("_", " ")}
+                    color={
+                      post.status === "pending_review"
+                        ? "bg-amber-50 text-amber-700"
+                        : "bg-green-50 text-green-700"
+                    }
+                  />
+                </Td>
+                <Td>
+                  <Dot active={post.screening_requested} />
+                </Td>
+                <Td className="text-xs text-gray-500">{fmt(post.created_at)}</Td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </TableWrap>
+  );
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function AdminPage() {
-  const [stats, sources, recentJobs, recentMatches, recentAlerts] =
+  const [stats, sources, recentJobs, recentMatches, recentAlerts, recruiterJobs] =
     await Promise.all([
       getAdminStats(),
       getSources(),
       getRecentJobs(25),
       getRecentMatches(25),
       getRecentAlerts(25),
+      getRecruiterJobPosts(25),
     ]);
 
   return (
@@ -423,6 +492,17 @@ export default async function AdminPage() {
               value={stats.matches.pending}
               accent={stats.matches.pending > 0 ? "text-amber-600" : "text-gray-400"}
             />
+            <StatCard
+              label="Recruiters"
+              value={stats.recruiters.profiles}
+              sub={`${stats.recruiters.pending_jobs} pending jobs`}
+              accent="text-recruiter"
+            />
+            <StatCard
+              label="Recruiter Jobs"
+              value={stats.recruiters.job_posts}
+              accent="text-recruiter"
+            />
           </div>
         </section>
 
@@ -463,6 +543,25 @@ export default async function AdminPage() {
             </Link>
           </div>
           <RecentJobsTable jobs={recentJobs} />
+        </section>
+
+        <section>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+              Recruiter Job Posts{" "}
+              <span className="normal-case font-normal text-gray-400">
+                (last 25)
+              </span>
+            </h2>
+            <Link
+              href="/recruiters"
+              target="_blank"
+              className="text-xs text-recruiter hover:underline"
+            >
+              Recruiter page
+            </Link>
+          </div>
+          <RecruiterJobsTable posts={recruiterJobs} />
         </section>
 
         {/* ── Job Matches — Step 11 verification ──────────────────────────── */}
