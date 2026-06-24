@@ -69,6 +69,13 @@ const QUERY_LAYERS: Record<JSearchLayer, string[]> = {
   all: [...LAYER_1_QUERIES, ...LAYER_2_QUERIES, ...LAYER_3_QUERIES],
 };
 
+const DATE_POSTED_BY_LAYER: Record<JSearchLayer, string> = {
+  "1": "3days",
+  "2": "week",
+  "3": "month",
+  all: "week",
+};
+
 interface JSearchJob {
   employer_name: string;
   job_publisher: string;
@@ -104,12 +111,13 @@ function buildSalaryRange(job: JSearchJob): string | null {
 async function fetchQuery(
   query: string,
   todayISO: string,
-  apiKey: string
+  apiKey: string,
+  datePosted: string
 ): Promise<IngestJobInput[]> {
   const url = new URL(JSEARCH_BASE);
   url.searchParams.set("query", query);
   url.searchParams.set("num_pages", "5");
-  url.searchParams.set("date_posted", "today");
+  url.searchParams.set("date_posted", datePosted);
 
   const response = await fetch(url.toString(), {
     headers: {
@@ -165,11 +173,12 @@ export async function fetchAllJSearchJobs(
 
   const todayISO = new Date().toISOString().split("T")[0];
   const queries = QUERY_LAYERS[layer] ?? QUERY_LAYERS.all;
+  const datePosted = DATE_POSTED_BY_LAYER[layer] ?? DATE_POSTED_BY_LAYER.all;
   const seen = new Set<string>();
   const results: IngestJobInput[] = [];
 
   for (const query of queries) {
-    const jobs = await fetchQuery(query, todayISO, apiKey);
+    const jobs = await fetchQuery(query, todayISO, apiKey, datePosted);
     for (const job of jobs) {
       if (!seen.has(job.apply_url)) {
         seen.add(job.apply_url);

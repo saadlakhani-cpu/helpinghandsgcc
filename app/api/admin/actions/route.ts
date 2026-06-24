@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}));
   const action = typeof body.action === "string" ? body.action : "";
 
-  const base = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const base = request.nextUrl.origin;
   const cronHeaders = {
     Authorization: `Bearer ${process.env.CRON_SECRET ?? ""}`,
     "Content-Type": "application/json",

@@ -100,7 +100,7 @@ export function AdminActions() {
         disabled={loading !== null}
         className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-50"
       >
-        {loading === "send-alerts" ? "Running…" : "Run Send-Alerts"}
+        {loading === "send-alerts" ? "Running..." : "Run Send-Alerts"}
       </button>
 
       <button
@@ -108,7 +108,7 @@ export function AdminActions() {
         disabled={loading !== null}
         className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
       >
-        {loading === "expire-jobs" ? "Running…" : "Run Expire-Jobs"}
+        {loading === "expire-jobs" ? "Running..." : "Run Expire-Jobs"}
       </button>
 
       <hr className="border-gray-200" />
@@ -122,7 +122,7 @@ export function AdminActions() {
         disabled={loading !== null}
         className="w-full rounded-lg bg-finance px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:opacity-50"
       >
-        {loading === "fetch-jobs-layer-1" ? "Running…" : "Run JSearch Layer 1"}
+        {loading === "fetch-jobs-layer-1" ? "Running..." : "Run JSearch Layer 1"}
       </button>
 
       <button
@@ -130,7 +130,7 @@ export function AdminActions() {
         disabled={loading !== null}
         className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
       >
-        {loading === "fetch-jobs-layer-2" ? "Running…" : "Run JSearch Layer 2"}
+        {loading === "fetch-jobs-layer-2" ? "Running..." : "Run JSearch Layer 2"}
       </button>
 
       <button
@@ -138,7 +138,7 @@ export function AdminActions() {
         disabled={loading !== null}
         className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
       >
-        {loading === "fetch-jobs-layer-3" ? "Running…" : "Run JSearch Layer 3"}
+        {loading === "fetch-jobs-layer-3" ? "Running..." : "Run JSearch Layer 3"}
       </button>
 
       <ResultPanel />
