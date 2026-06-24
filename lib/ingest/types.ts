@@ -21,4 +21,11 @@ export type IngestResponse = {
   inserted: number;
   skipped: number;
   layer?: string;
+  jsearch_debug?: Array<{
+    query: string;
+    date_posted: string;
+    status: string;
+    raw_count: number;
+    usable_count: number;
+  }>;
 };

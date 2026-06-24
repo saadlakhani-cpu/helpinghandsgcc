@@ -73,7 +73,7 @@ const DATE_POSTED_BY_LAYER: Record<JSearchLayer, string> = {
   "1": "3days",
   "2": "week",
   "3": "month",
-  all: "week",
+  all: "month",
 };
 
 interface JSearchJob {
@@ -91,12 +91,22 @@ interface JSearchJob {
   job_salary_currency: string | null;
   job_salary_period: string | null;
   job_job_title: string | null;
+  job_posted_at_datetime_utc?: string | null;
+  job_posted_at_timestamp?: number | null;
 }
 
 interface JSearchResponse {
   status: string;
   data: JSearchJob[];
 }
+
+export type JSearchQueryDebug = {
+  query: string;
+  date_posted: string;
+  status: string;
+  raw_count: number;
+  usable_count: number;
+};
 
 function buildSalaryRange(job: JSearchJob): string | null {
   if (job.job_min_salary == null && job.job_max_salary == null) return null;
@@ -108,11 +118,26 @@ function buildSalaryRange(job: JSearchJob): string | null {
   return `${currency} ${range}${period}`.trim();
 }
 
+function getPostedDate(job: JSearchJob, fallbackISO: string): string {
+  const postedDate = job.job_posted_at_datetime_utc
+    ? new Date(job.job_posted_at_datetime_utc)
+    : job.job_posted_at_timestamp
+      ? new Date(job.job_posted_at_timestamp * 1000)
+      : null;
+
+  if (postedDate && !Number.isNaN(postedDate.getTime())) {
+    return postedDate.toISOString().slice(0, 10);
+  }
+
+  return fallbackISO;
+}
+
 async function fetchQuery(
   query: string,
   todayISO: string,
   apiKey: string,
-  datePosted: string
+  datePosted: string,
+  debug?: JSearchQueryDebug[]
 ): Promise<IngestJobInput[]> {
   const url = new URL(JSEARCH_BASE);
   url.searchParams.set("query", query);
@@ -128,15 +153,41 @@ async function fetchQuery(
 
   if (!response.ok) {
     console.error(`[fetch-jobs] JSearch error for "${query}": ${response.status}`);
+    debug?.push({
+      query,
+      date_posted: datePosted,
+      status: `HTTP ${response.status}`,
+      raw_count: 0,
+      usable_count: 0,
+    });
     return [];
   }
 
   const json: JSearchResponse = await response.json();
 
-  if (json.status !== "OK" || !Array.isArray(json.data)) return [];
+  if (json.status !== "OK" || !Array.isArray(json.data)) {
+    debug?.push({
+      query,
+      date_posted: datePosted,
+      status: json.status ?? "INVALID_RESPONSE",
+      raw_count: 0,
+      usable_count: 0,
+    });
+    return [];
+  }
 
-  return json.data
-    .filter((job) => job.job_apply_link && job.job_title && job.employer_name)
+  const usableJobs = json.data
+    .filter((job) => job.job_apply_link && job.job_title && job.employer_name);
+
+  debug?.push({
+    query,
+    date_posted: datePosted,
+    status: json.status,
+    raw_count: json.data.length,
+    usable_count: usableJobs.length,
+  });
+
+  return usableJobs
     .map((job): IngestJobInput => {
       const description = cleanDescription(job.job_description);
       const snippet = description ? description.slice(0, 500) : null;
@@ -153,7 +204,7 @@ async function fetchQuery(
         city: job.job_city ?? "",
         work_type: workTypeRaw,
         seniority: job.job_job_title ?? null,
-        date_posted: todayISO,
+        date_posted: getPostedDate(job, todayISO),
         apply_url: job.job_apply_link,
         description: description,
         description_snippet: snippet,
@@ -168,17 +219,27 @@ async function fetchQuery(
 export async function fetchAllJSearchJobs(
   layer: JSearchLayer = "all"
 ): Promise<IngestJobInput[]> {
+  const { jobs } = await fetchAllJSearchJobsWithDebug(layer);
+  return jobs;
+}
+
+export async function fetchAllJSearchJobsWithDebug(
+  layer: JSearchLayer = "all",
+  datePostedOverride?: string
+): Promise<{ jobs: IngestJobInput[]; debug: JSearchQueryDebug[] }> {
   const apiKey = process.env.RAPIDAPI_KEY;
   if (!apiKey) throw new Error("RAPIDAPI_KEY env var is not set");
 
   const todayISO = new Date().toISOString().split("T")[0];
   const queries = QUERY_LAYERS[layer] ?? QUERY_LAYERS.all;
-  const datePosted = DATE_POSTED_BY_LAYER[layer] ?? DATE_POSTED_BY_LAYER.all;
+  const datePosted =
+    datePostedOverride ?? DATE_POSTED_BY_LAYER[layer] ?? DATE_POSTED_BY_LAYER.all;
+  const debug: JSearchQueryDebug[] = [];
   const seen = new Set<string>();
   const results: IngestJobInput[] = [];
 
   for (const query of queries) {
-    const jobs = await fetchQuery(query, todayISO, apiKey, datePosted);
+    const jobs = await fetchQuery(query, todayISO, apiKey, datePosted, debug);
     for (const job of jobs) {
       if (!seen.has(job.apply_url)) {
         seen.add(job.apply_url);
@@ -187,5 +248,5 @@ export async function fetchAllJSearchJobs(
     }
   }
 
-  return results;
+  return { jobs: results, debug };
 }

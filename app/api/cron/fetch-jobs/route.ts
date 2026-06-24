@@ -14,7 +14,7 @@ import { generateJobSlug } from "@/lib/ingest/slug";
 import { calculateFreshnessScore } from "@/lib/ingest/freshness";
 import { getSourcePriority } from "@/lib/ingest/source-priority";
 import {
-  fetchAllJSearchJobs,
+  fetchAllJSearchJobsWithDebug,
   type JSearchLayer,
 } from "@/lib/jsearch/fetch-jobs";
 import type { IngestResponse } from "@/lib/ingest/types";
@@ -32,6 +32,12 @@ function getJSearchLayer(request: NextRequest): JSearchLayer {
   return layer === "1" || layer === "2" || layer === "3" ? layer : "all";
 }
 
+function getDatePostedOverride(request: NextRequest): string | undefined {
+  const datePosted = request.nextUrl.searchParams.get("date_posted");
+  const allowed = new Set(["today", "3days", "week", "month", "all"]);
+  return datePosted && allowed.has(datePosted) ? datePosted : undefined;
+}
+
 export async function POST(request: NextRequest) {
   const cronSecret = process.env.CRON_SECRET;
   if (cronSecret) {
@@ -43,7 +49,11 @@ export async function POST(request: NextRequest) {
 
   try {
     const layer = getJSearchLayer(request);
-    const jobs = await fetchAllJSearchJobs(layer);
+    const datePostedOverride = getDatePostedOverride(request);
+    const { jobs, debug } = await fetchAllJSearchJobsWithDebug(
+      layer,
+      datePostedOverride
+    );
 
     const supabase = createAdminClient();
 
@@ -162,6 +172,7 @@ export async function POST(request: NextRequest) {
       inserted,
       skipped,
       layer,
+      jsearch_debug: debug,
     };
 
     return NextResponse.json(response);
