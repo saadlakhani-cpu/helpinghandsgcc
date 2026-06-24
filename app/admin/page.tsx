@@ -13,6 +13,7 @@ import {
   type SourceRow,
 } from "@/lib/admin/stats";
 import { AdminActions } from "@/app/admin/_components/AdminActions";
+import { RecruiterJobActions } from "@/app/admin/_components/RecruiterJobActions";
 
 export const dynamic = "force-dynamic";
 
@@ -345,11 +346,12 @@ function RecruiterJobsTable({ posts }: { posts: RecruiterJobPostRow[] }) {
             <Th>Status</Th>
             <Th>Screening</Th>
             <Th>Submitted</Th>
+            <Th>Actions</Th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
           {posts.length === 0 ? (
-            <EmptyRow cols={8} message="No recruiter job posts yet" />
+            <EmptyRow cols={9} message="No recruiter job posts yet" />
           ) : (
             posts.map((post) => (
               <tr key={post.id} className="hover:bg-gray-50">
@@ -388,6 +390,12 @@ function RecruiterJobsTable({ posts }: { posts: RecruiterJobPostRow[] }) {
                   <Dot active={post.screening_requested} />
                 </Td>
                 <Td className="text-xs text-gray-500">{fmt(post.created_at)}</Td>
+                <Td>
+                  <RecruiterJobActions
+                    recruiterJobId={post.id}
+                    status={post.status}
+                  />
+                </Td>
               </tr>
             ))
           )}
