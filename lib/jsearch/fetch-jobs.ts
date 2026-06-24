@@ -1,7 +1,7 @@
 import type { IngestJobInput } from "@/lib/ingest/types";
 import { cleanDescription } from "@/lib/ingest/sanitize";
 
-const JSEARCH_BASE = "https://jsearch.p.rapidapi.com/search";
+const JSEARCH_BASE = "https://jsearch.p.rapidapi.com/search-v2";
 
 const FEATURED_COMPANIES = [
   "aramco", "sabic", "pif", "neom", "maaden", "ma'aden", "acwa power",
@@ -118,6 +118,23 @@ function buildSalaryRange(job: JSearchJob): string | null {
   return `${currency} ${range}${period}`.trim();
 }
 
+function inferCountryParam(query: string): string {
+  const normalized = query.toLowerCase();
+  if (normalized.includes("saudi") || normalized.includes("riyadh")) return "sa";
+  if (
+    normalized.includes("uae") ||
+    normalized.includes("dubai") ||
+    normalized.includes("abu dhabi")
+  ) {
+    return "ae";
+  }
+  if (normalized.includes("qatar")) return "qa";
+  if (normalized.includes("kuwait")) return "kw";
+  if (normalized.includes("bahrain")) return "bh";
+  if (normalized.includes("oman")) return "om";
+  return "sa";
+}
+
 function getPostedDate(job: JSearchJob, fallbackISO: string): string {
   const postedDate = job.job_posted_at_datetime_utc
     ? new Date(job.job_posted_at_datetime_utc)
@@ -142,6 +159,7 @@ async function fetchQuery(
   const url = new URL(JSEARCH_BASE);
   url.searchParams.set("query", query);
   url.searchParams.set("num_pages", "5");
+  url.searchParams.set("country", inferCountryParam(query));
   url.searchParams.set("date_posted", datePosted);
 
   const response = await fetch(url.toString(), {
