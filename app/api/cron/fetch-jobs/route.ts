@@ -15,6 +15,7 @@ import { calculateFreshnessScore } from "@/lib/ingest/freshness";
 import { getSourcePriority } from "@/lib/ingest/source-priority";
 import {
   fetchAllJSearchJobsWithDebug,
+  type JSearchFetchOptions,
   type JSearchLayer,
 } from "@/lib/jsearch/fetch-jobs";
 import type { IngestResponse } from "@/lib/ingest/types";
@@ -38,6 +39,19 @@ function getDatePostedOverride(request: NextRequest): string | undefined {
   return datePosted && allowed.has(datePosted) ? datePosted : undefined;
 }
 
+function getNumberParam(
+  request: NextRequest,
+  name: string,
+  min: number,
+  max: number
+): number | undefined {
+  const value = request.nextUrl.searchParams.get(name);
+  if (!value) return undefined;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed)) return undefined;
+  return Math.min(max, Math.max(min, parsed));
+}
+
 export async function POST(request: NextRequest) {
   const cronSecret = process.env.CRON_SECRET;
   if (cronSecret) {
@@ -49,11 +63,13 @@ export async function POST(request: NextRequest) {
 
   try {
     const layer = getJSearchLayer(request);
-    const datePostedOverride = getDatePostedOverride(request);
-    const { jobs, debug } = await fetchAllJSearchJobsWithDebug(
-      layer,
-      datePostedOverride
-    );
+    const fetchOptions: JSearchFetchOptions = {
+      datePosted: getDatePostedOverride(request),
+      queryOffset: getNumberParam(request, "offset", 0, 100),
+      queryLimit: getNumberParam(request, "limit", 1, 10),
+      numPages: getNumberParam(request, "pages", 1, 5),
+    };
+    const { jobs, debug } = await fetchAllJSearchJobsWithDebug(layer, fetchOptions);
 
     const supabase = createAdminClient();
 

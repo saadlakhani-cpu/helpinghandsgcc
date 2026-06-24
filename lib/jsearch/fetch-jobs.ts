@@ -108,6 +108,13 @@ export type JSearchQueryDebug = {
   usable_count: number;
 };
 
+export type JSearchFetchOptions = {
+  datePosted?: string;
+  queryOffset?: number;
+  queryLimit?: number;
+  numPages?: number;
+};
+
 function buildSalaryRange(job: JSearchJob): string | null {
   if (job.job_min_salary == null && job.job_max_salary == null) return null;
   const currency = job.job_salary_currency ?? "";
@@ -154,11 +161,12 @@ async function fetchQuery(
   todayISO: string,
   apiKey: string,
   datePosted: string,
+  numPages: number,
   debug?: JSearchQueryDebug[]
 ): Promise<IngestJobInput[]> {
   const url = new URL(JSEARCH_BASE);
   url.searchParams.set("query", query);
-  url.searchParams.set("num_pages", "5");
+  url.searchParams.set("num_pages", String(numPages));
   url.searchParams.set("country", inferCountryParam(query));
   url.searchParams.set("date_posted", datePosted);
 
@@ -243,21 +251,34 @@ export async function fetchAllJSearchJobs(
 
 export async function fetchAllJSearchJobsWithDebug(
   layer: JSearchLayer = "all",
-  datePostedOverride?: string
+  options: JSearchFetchOptions = {}
 ): Promise<{ jobs: IngestJobInput[]; debug: JSearchQueryDebug[] }> {
   const apiKey = process.env.RAPIDAPI_KEY;
   if (!apiKey) throw new Error("RAPIDAPI_KEY env var is not set");
 
   const todayISO = new Date().toISOString().split("T")[0];
-  const queries = QUERY_LAYERS[layer] ?? QUERY_LAYERS.all;
+  const allQueries = QUERY_LAYERS[layer] ?? QUERY_LAYERS.all;
+  const queryOffset = Math.max(0, options.queryOffset ?? 0);
+  const queryLimit = options.queryLimit
+    ? Math.max(1, options.queryLimit)
+    : allQueries.length;
+  const queries = allQueries.slice(queryOffset, queryOffset + queryLimit);
   const datePosted =
-    datePostedOverride ?? DATE_POSTED_BY_LAYER[layer] ?? DATE_POSTED_BY_LAYER.all;
+    options.datePosted ?? DATE_POSTED_BY_LAYER[layer] ?? DATE_POSTED_BY_LAYER.all;
+  const numPages = Math.min(5, Math.max(1, options.numPages ?? 2));
   const debug: JSearchQueryDebug[] = [];
   const seen = new Set<string>();
   const results: IngestJobInput[] = [];
 
   for (const query of queries) {
-    const jobs = await fetchQuery(query, todayISO, apiKey, datePosted, debug);
+    const jobs = await fetchQuery(
+      query,
+      todayISO,
+      apiKey,
+      datePosted,
+      numPages,
+      debug
+    );
     for (const job of jobs) {
       if (!seen.has(job.apply_url)) {
         seen.add(job.apply_url);
