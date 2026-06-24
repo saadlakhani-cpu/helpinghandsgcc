@@ -18,6 +18,11 @@ type ActionResult = {
   inserted?: number;
   skipped?: number;
   layer?: string;
+  jsearch_debug?: Array<{
+    query: string;
+    raw_count: number;
+    usable_count: number;
+  }>;
   // generic
   message?: string;
   error?: string;
@@ -85,6 +90,12 @@ export function AdminActions() {
             <li>Received: <strong>{result.received ?? 0}</strong></li>
             <li>Inserted: <strong>{result.inserted ?? 0}</strong></li>
             <li>Skipped: <strong>{result.skipped ?? 0}</strong></li>
+            {result.jsearch_debug?.slice(0, 5).map((row) => (
+              <li key={row.query} className="text-gray-600">
+                {row.query}: <strong>{row.raw_count}</strong> raw /{" "}
+                <strong>{row.usable_count}</strong> usable
+              </li>
+            ))}
           </ul>
         ) : (
           <p>Done.</p>
@@ -114,7 +125,7 @@ export function AdminActions() {
       <hr className="border-gray-200" />
 
       <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-        JSearch
+        JSearch scheduled layers
       </p>
 
       <button
@@ -139,6 +150,58 @@ export function AdminActions() {
         className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
       >
         {loading === "fetch-jobs-layer-3" ? "Running..." : "Run JSearch Layer 3"}
+      </button>
+
+      <p className="pt-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+        JSearch safe batches
+      </p>
+
+      <button
+        onClick={() => runAction("fetch-finance-batch-1")}
+        disabled={loading !== null}
+        className="w-full rounded-lg bg-finance px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:opacity-50"
+      >
+        {loading === "fetch-finance-batch-1" ? "Running..." : "Finance Batch 1"}
+      </button>
+
+      <button
+        onClick={() => runAction("fetch-finance-batch-2")}
+        disabled={loading !== null}
+        className="w-full rounded-lg bg-finance px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:opacity-50"
+      >
+        {loading === "fetch-finance-batch-2" ? "Running..." : "Finance Batch 2"}
+      </button>
+
+      <button
+        onClick={() => runAction("fetch-finance-batch-3")}
+        disabled={loading !== null}
+        className="w-full rounded-lg bg-finance px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:opacity-50"
+      >
+        {loading === "fetch-finance-batch-3" ? "Running..." : "Finance Batch 3"}
+      </button>
+
+      <button
+        onClick={() => runAction("fetch-finance-batch-4")}
+        disabled={loading !== null}
+        className="w-full rounded-lg bg-finance px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:opacity-50"
+      >
+        {loading === "fetch-finance-batch-4" ? "Running..." : "Finance Batch 4"}
+      </button>
+
+      <button
+        onClick={() => runAction("fetch-ai-jobs")}
+        disabled={loading !== null}
+        className="w-full rounded-lg bg-ai px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700 disabled:opacity-50"
+      >
+        {loading === "fetch-ai-jobs" ? "Running..." : "AI Jobs Batch"}
+      </button>
+
+      <button
+        onClick={() => runAction("fetch-gcc-wider")}
+        disabled={loading !== null}
+        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
+      >
+        {loading === "fetch-gcc-wider" ? "Running..." : "Wider GCC Batch"}
       </button>
 
       <ResultPanel />
