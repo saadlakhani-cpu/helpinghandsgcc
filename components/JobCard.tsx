@@ -94,6 +94,11 @@ export function JobCard({ job }: JobCardProps) {
         >
           {job.category}
         </span>
+        {job.platform && (
+          <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-600">
+            {job.platform}
+          </span>
+        )}
       </div>
 
       <p className="mb-4 text-sm text-gray-600">
