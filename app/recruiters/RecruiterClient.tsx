@@ -69,6 +69,7 @@ export function RecruiterClient() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const formElement = event.currentTarget;
     setSubmitState("submitting");
     setMessage("");
 
@@ -87,7 +88,7 @@ export function RecruiterClient() {
         return;
       }
 
-      const form = new FormData(event.currentTarget);
+      const form = new FormData(formElement);
       const payload = {
         company_name: String(form.get("company_name") ?? ""),
         contact_name: String(form.get("contact_name") ?? ""),
@@ -132,7 +133,7 @@ export function RecruiterClient() {
         return;
       }
 
-      event.currentTarget.reset();
+      formElement.reset();
       setHiringCategories(["Finance"]);
       setScreeningRequested(true);
       setSubmitState("success");
