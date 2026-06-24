@@ -97,7 +97,8 @@ interface JSearchJob {
 
 interface JSearchResponse {
   status: string;
-  data: JSearchJob[];
+  // v1 returns data as an array; v2 returns data as { jobs: [...] }
+  data: JSearchJob[] | { jobs: JSearchJob[] } | null;
 }
 
 export type JSearchQueryDebug = {
@@ -191,25 +192,35 @@ async function fetchQuery(
 
   const json: JSearchResponse = await response.json();
 
-  if (json.status !== "OK" || !Array.isArray(json.data)) {
+  // Support both v1 (data=[...]) and v2 (data={jobs:[...]}) response shapes.
+  let rawData: JSearchJob[];
+  if (Array.isArray(json.data)) {
+    rawData = json.data;
+  } else if (json.data && Array.isArray((json.data as { jobs?: JSearchJob[] }).jobs)) {
+    rawData = (json.data as { jobs: JSearchJob[] }).jobs;
+  } else {
+    rawData = [];
+  }
+
+  if (json.status !== "OK") {
     debug?.push({
       query,
       date_posted: datePosted,
       status: json.status ?? "INVALID_RESPONSE",
-      raw_count: 0,
+      raw_count: rawData.length,
       usable_count: 0,
     });
     return [];
   }
 
-  const usableJobs = json.data
+  const usableJobs = rawData
     .filter((job) => job.job_apply_link && job.job_title && job.employer_name);
 
   debug?.push({
     query,
     date_posted: datePosted,
     status: json.status,
-    raw_count: json.data.length,
+    raw_count: rawData.length,
     usable_count: usableJobs.length,
   });
 
