@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/cron/fetch-jobs/layer1",
-      "schedule": "0 3 * * 1-4,6"
+      "schedule": "30 6 * * 1-4,6"
     },
     {
       "path": "/api/cron/fetch-jobs/layer1",
@@ -10,7 +10,7 @@
     },
     {
       "path": "/api/cron/fetch-jobs/layer2",
-      "schedule": "0 3 * * 1"
+      "schedule": "30 6 * * 1"
     },
     {
       "path": "/api/cron/fetch-jobs/layer2",
@@ -18,11 +18,11 @@
     },
     {
       "path": "/api/cron/fetch-jobs/layer3",
-      "schedule": "0 3 * * 3"
+      "schedule": "30 6 * * 3"
     },
     {
       "path": "/api/cron/fetch-jobs/ai",
-      "schedule": "0 3 * * 2"
+      "schedule": "30 6 * * 2"
     },
     {
       "path": "/api/cron/rematch-subscribers",
