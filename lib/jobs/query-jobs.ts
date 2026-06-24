@@ -89,14 +89,17 @@ export async function queryJobs(
 
   if (params.sort === "date_posted") {
     query = query
+      .order("recruiter_source", { ascending: false, nullsFirst: false })
       .order("is_featured", { ascending: false })
       .order("date_posted", { ascending: false });
   } else if (params.sort === "seniority") {
     query = query
+      .order("recruiter_source", { ascending: false, nullsFirst: false })
       .order("is_featured", { ascending: false })
       .order("date_posted", { ascending: false });
   } else {
     query = query
+      .order("recruiter_source", { ascending: false, nullsFirst: false })
       .order("is_featured", { ascending: false })
       .order("freshness_score", { ascending: false });
   }

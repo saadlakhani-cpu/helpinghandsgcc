@@ -43,6 +43,7 @@ export async function getCategoryPageData(
     .select("*", { count: "exact" })
     .eq("category", category)
     .eq("is_active", true)
+    .order("recruiter_source", { ascending: false, nullsFirst: false })
     .order("freshness_score", { ascending: false })
     .limit(8);
 
