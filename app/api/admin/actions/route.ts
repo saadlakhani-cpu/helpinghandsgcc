@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
       "fetch-finance-batch-4":
         "/api/cron/fetch-jobs/layer1?date_posted=all&offset=15&limit=5&pages=1",
       "fetch-ai-jobs":
-        "/api/cron/fetch-jobs/layer3?date_posted=all&offset=4&limit=2&pages=1",
+        "/api/cron/fetch-jobs/ai?date_posted=week&offset=0&limit=6&pages=1",
       "fetch-gcc-wider":
         "/api/cron/fetch-jobs/layer3?date_posted=all&offset=0&limit=4&pages=1",
     };

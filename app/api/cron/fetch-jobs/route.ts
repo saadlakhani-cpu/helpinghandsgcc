@@ -30,7 +30,10 @@ function getJSearchLayer(request: NextRequest): JSearchLayer {
   if (pathname.endsWith("/layer1")) return "1";
   if (pathname.endsWith("/layer2")) return "2";
   if (pathname.endsWith("/layer3")) return "3";
-  return layer === "1" || layer === "2" || layer === "3" ? layer : "all";
+  if (pathname.endsWith("/ai")) return "ai";
+  return layer === "1" || layer === "2" || layer === "3" || layer === "ai"
+    ? layer
+    : "all";
 }
 
 function getDatePostedOverride(request: NextRequest): string | undefined {

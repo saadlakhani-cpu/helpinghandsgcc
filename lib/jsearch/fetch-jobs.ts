@@ -52,27 +52,41 @@ const LAYER_3_QUERIES = [
   "finance jobs in Kuwait",
   "finance jobs in Bahrain",
   "finance jobs in Oman",
-  "AI jobs in United Arab Emirates",
-  "AI jobs in Saudi Arabia",
   "treasury jobs in Saudi Arabia",
   "tax jobs in Saudi Arabia",
   "audit jobs in Saudi Arabia",
   "GRC jobs in Saudi Arabia",
 ];
 
-export type JSearchLayer = "1" | "2" | "3" | "all";
+const AI_WEEKLY_QUERIES = [
+  "AI jobs in United Arab Emirates",
+  "AI jobs in Saudi Arabia",
+  "data analyst jobs in Dubai",
+  "data science jobs in Saudi Arabia",
+  "machine learning jobs in Dubai",
+  "business intelligence jobs in Riyadh",
+];
+
+export type JSearchLayer = "1" | "2" | "3" | "ai" | "all";
 
 const QUERY_LAYERS: Record<JSearchLayer, string[]> = {
   "1": LAYER_1_QUERIES,
   "2": LAYER_2_QUERIES,
   "3": LAYER_3_QUERIES,
-  all: [...LAYER_1_QUERIES, ...LAYER_2_QUERIES, ...LAYER_3_QUERIES],
+  ai: AI_WEEKLY_QUERIES,
+  all: [
+    ...LAYER_1_QUERIES,
+    ...LAYER_2_QUERIES,
+    ...LAYER_3_QUERIES,
+    ...AI_WEEKLY_QUERIES,
+  ],
 };
 
 const DATE_POSTED_BY_LAYER: Record<JSearchLayer, string> = {
   "1": "3days",
   "2": "week",
   "3": "month",
+  ai: "week",
   all: "month",
 };
 

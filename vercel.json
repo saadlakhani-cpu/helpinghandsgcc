@@ -21,6 +21,10 @@
       "schedule": "0 3 * * 3"
     },
     {
+      "path": "/api/cron/fetch-jobs/ai",
+      "schedule": "0 3 * * 2"
+    },
+    {
       "path": "/api/cron/rematch-subscribers",
       "schedule": "0 5 * * *"
     },
