@@ -11,6 +11,21 @@ const SENIORITIES = ["Junior", "Mid", "Senior", "Director", "C-Suite"];
 
 type SubmitState = "idle" | "submitting" | "success" | "error";
 
+function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  message: string
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timeout = window.setTimeout(() => reject(new Error(message)), timeoutMs);
+
+    promise
+      .then(resolve)
+      .catch(reject)
+      .finally(() => window.clearTimeout(timeout));
+  });
+}
+
 export function RecruiterClient() {
   const [email, setEmail] = useState<string | null>(null);
   const [message, setMessage] = useState("");
@@ -57,64 +72,81 @@ export function RecruiterClient() {
     setSubmitState("submitting");
     setMessage("");
 
-    const supabase = createBrowserClient();
-    const { data } = await supabase.auth.getSession();
-    const token = data.session?.access_token;
+    try {
+      const supabase = createBrowserClient();
+      const { data } = await withTimeout(
+        supabase.auth.getSession(),
+        8000,
+        "Could not confirm your Google sign-in. Please refresh and sign in again."
+      );
+      const token = data.session?.access_token;
 
-    if (!token) {
+      if (!token) {
+        setSubmitState("error");
+        setMessage("Please sign in with Google before submitting.");
+        return;
+      }
+
+      const form = new FormData(event.currentTarget);
+      const payload = {
+        company_name: String(form.get("company_name") ?? ""),
+        contact_name: String(form.get("contact_name") ?? ""),
+        work_email: String(form.get("work_email") ?? ""),
+        phone: String(form.get("phone") ?? ""),
+        company_website: String(form.get("company_website") ?? ""),
+        linkedin_url: String(form.get("linkedin_url") ?? ""),
+        country: String(form.get("country") ?? ""),
+        hiring_categories: hiringCategories,
+        title: String(form.get("title") ?? ""),
+        category: String(form.get("category") ?? ""),
+        city: String(form.get("city") ?? ""),
+        job_country: String(form.get("job_country") ?? ""),
+        work_type: String(form.get("work_type") ?? ""),
+        seniority: String(form.get("seniority") ?? ""),
+        job_type: String(form.get("job_type") ?? ""),
+        description: String(form.get("description") ?? ""),
+        requirements: String(form.get("requirements") ?? ""),
+        apply_email: String(form.get("apply_email") ?? ""),
+        apply_url: String(form.get("apply_url") ?? ""),
+        screening_requested: screeningRequested,
+      };
+
+      const response = await withTimeout(
+        fetch("/api/recruiters/submit", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        }),
+        15000,
+        "The recruiter submission is taking too long. Please try again."
+      );
+
+      const result = (await response.json()) as { error?: string };
+
+      if (!response.ok) {
+        setSubmitState("error");
+        setMessage(result.error ?? "Could not submit your job. Please try again.");
+        return;
+      }
+
+      event.currentTarget.reset();
+      setHiringCategories(["Finance"]);
+      setScreeningRequested(true);
+      setSubmitState("success");
+      setMessage(
+        "Thanks. Your job has been submitted for review. Most approved roles are published within 10 minutes."
+      );
+    } catch (error) {
       setSubmitState("error");
-      setMessage("Please sign in with Google before submitting.");
-      return;
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Could not submit your job. Please refresh and try again."
+      );
     }
-
-    const form = new FormData(event.currentTarget);
-    const payload = {
-      company_name: String(form.get("company_name") ?? ""),
-      contact_name: String(form.get("contact_name") ?? ""),
-      work_email: String(form.get("work_email") ?? ""),
-      phone: String(form.get("phone") ?? ""),
-      company_website: String(form.get("company_website") ?? ""),
-      linkedin_url: String(form.get("linkedin_url") ?? ""),
-      country: String(form.get("country") ?? ""),
-      hiring_categories: hiringCategories,
-      title: String(form.get("title") ?? ""),
-      category: String(form.get("category") ?? ""),
-      city: String(form.get("city") ?? ""),
-      job_country: String(form.get("job_country") ?? ""),
-      work_type: String(form.get("work_type") ?? ""),
-      seniority: String(form.get("seniority") ?? ""),
-      job_type: String(form.get("job_type") ?? ""),
-      description: String(form.get("description") ?? ""),
-      requirements: String(form.get("requirements") ?? ""),
-      apply_email: String(form.get("apply_email") ?? ""),
-      apply_url: String(form.get("apply_url") ?? ""),
-      screening_requested: screeningRequested,
-    };
-
-    const response = await fetch("/api/recruiters/submit", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const result = (await response.json()) as { error?: string };
-
-    if (!response.ok) {
-      setSubmitState("error");
-      setMessage(result.error ?? "Could not submit your job. Please try again.");
-      return;
-    }
-
-    event.currentTarget.reset();
-    setHiringCategories(["Finance"]);
-    setScreeningRequested(true);
-    setSubmitState("success");
-    setMessage(
-      "Thanks. Your job has been submitted for review. Most approved roles are published within 10 minutes."
-    );
   }
 
   if (!email) {
