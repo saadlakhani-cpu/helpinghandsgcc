@@ -1,3 +1,4 @@
+import { unstable_noStore as noStore } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Job } from "@/lib/jobs/types";
 
@@ -10,6 +11,8 @@ export type HomePageData = {
 };
 
 export async function getHomePageData(): Promise<HomePageData> {
+  noStore();
+
   const supabase = createAdminClient();
 
   const [financeRes, aiRes, latestFinanceRes, latestAiRes, lastScrapedRes] =

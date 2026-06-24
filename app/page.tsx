@@ -8,6 +8,7 @@ import { getHomePageData } from "@/lib/jobs/home-data";
 import { formatHoursAgo } from "@/lib/utils/date";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function HomePage() {
   const { financeCount, aiCount, lastUpdated, latestFinance, latestAi } =
