@@ -15,6 +15,7 @@ import { calculateFreshnessScore } from "@/lib/ingest/freshness";
 import { getSourcePriority } from "@/lib/ingest/source-priority";
 import {
   fetchAllJSearchJobsWithDebug,
+  getJSearchQueryCount,
   type JSearchFetchOptions,
   type JSearchLayer,
 } from "@/lib/jsearch/fetch-jobs";
@@ -55,6 +56,24 @@ function getNumberParam(
   return Math.min(max, Math.max(min, parsed));
 }
 
+function getDefaultBatchSize(layer: JSearchLayer): number {
+  if (layer === "3") return 4;
+  if (layer === "ai") return 6;
+  return 5;
+}
+
+function getRotatingOffset(layer: JSearchLayer, batchSize: number): number {
+  const queryCount = getJSearchQueryCount(layer);
+  const batchCount = Math.max(1, Math.ceil(queryCount / batchSize));
+  const now = new Date();
+  const startOfYear = Date.UTC(now.getUTCFullYear(), 0, 1);
+  const dayOfYear = Math.floor((now.getTime() - startOfYear) / 86400000);
+  const halfDaySlot = now.getUTCHours() >= 12 ? 1 : 0;
+  const runSlot = dayOfYear * 2 + halfDaySlot;
+
+  return (runSlot % batchCount) * batchSize;
+}
+
 export async function POST(request: NextRequest) {
   const cronSecret = process.env.CRON_SECRET;
   if (cronSecret) {
@@ -66,10 +85,14 @@ export async function POST(request: NextRequest) {
 
   try {
     const layer = getJSearchLayer(request);
+    const queryLimit = getNumberParam(request, "limit", 1, 10);
+    const batchSize = queryLimit ?? getDefaultBatchSize(layer);
     const fetchOptions: JSearchFetchOptions = {
       datePosted: getDatePostedOverride(request),
-      queryOffset: getNumberParam(request, "offset", 0, 100),
-      queryLimit: getNumberParam(request, "limit", 1, 10),
+      queryOffset:
+        getNumberParam(request, "offset", 0, 100) ??
+        getRotatingOffset(layer, batchSize),
+      queryLimit: batchSize,
       numPages: getNumberParam(request, "pages", 1, 5),
     };
     const { jobs, debug } = await fetchAllJSearchJobsWithDebug(layer, fetchOptions);

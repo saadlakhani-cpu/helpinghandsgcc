@@ -90,6 +90,10 @@ const DATE_POSTED_BY_LAYER: Record<JSearchLayer, string> = {
   all: "month",
 };
 
+export function getJSearchQueryCount(layer: JSearchLayer): number {
+  return (QUERY_LAYERS[layer] ?? QUERY_LAYERS.all).length;
+}
+
 interface JSearchJob {
   employer_name: string;
   job_publisher: string;
