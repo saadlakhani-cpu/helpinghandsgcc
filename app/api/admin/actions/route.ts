@@ -42,6 +42,20 @@ export async function POST(request: NextRequest) {
   }
 
   if (
+    action === "fetch-jobs-layer-1" ||
+    action === "fetch-jobs-layer-2" ||
+    action === "fetch-jobs-layer-3"
+  ) {
+    const layer = action.replace("fetch-jobs-layer-", "layer");
+    const res = await fetch(`${base}/api/cron/fetch-jobs/${layer}`, {
+      method: "POST",
+      headers: cronHeaders,
+    });
+    const data = await res.json().catch(() => ({}));
+    return NextResponse.json(data, { status: res.status });
+  }
+
+  if (
     action === "approve-recruiter-job" ||
     action === "reject-recruiter-job" ||
     action === "publish-recruiter-job"

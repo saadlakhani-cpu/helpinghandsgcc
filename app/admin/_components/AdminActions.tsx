@@ -13,6 +13,11 @@ type ActionResult = {
   freshness_updated?: number;
   buckets_processed?: number;
   cutoff_date?: string;
+  // fetch-jobs
+  received?: number;
+  inserted?: number;
+  skipped?: number;
+  layer?: string;
   // generic
   message?: string;
   error?: string;
@@ -45,6 +50,7 @@ export function AdminActions() {
     const isError = Boolean(result.error);
     const isSendAlerts = result.sent !== undefined || result.subscribers_processed !== undefined;
     const isExpire = result.expired !== undefined || result.freshness_updated !== undefined;
+    const isFetchJobs = result.received !== undefined || result.inserted !== undefined;
     return (
       <div
         className={`rounded-lg p-3 text-xs ${
@@ -73,6 +79,13 @@ export function AdminActions() {
               <li className="text-gray-500">Cutoff: {result.cutoff_date}</li>
             )}
           </ul>
+        ) : isFetchJobs ? (
+          <ul className="space-y-0.5">
+            <li>Layer: <strong>{result.layer ?? "all"}</strong></li>
+            <li>Received: <strong>{result.received ?? 0}</strong></li>
+            <li>Inserted: <strong>{result.inserted ?? 0}</strong></li>
+            <li>Skipped: <strong>{result.skipped ?? 0}</strong></li>
+          </ul>
         ) : (
           <p>Done.</p>
         )}
@@ -96,6 +109,36 @@ export function AdminActions() {
         className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
       >
         {loading === "expire-jobs" ? "Running…" : "Run Expire-Jobs"}
+      </button>
+
+      <hr className="border-gray-200" />
+
+      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+        JSearch
+      </p>
+
+      <button
+        onClick={() => runAction("fetch-jobs-layer-1")}
+        disabled={loading !== null}
+        className="w-full rounded-lg bg-finance px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:opacity-50"
+      >
+        {loading === "fetch-jobs-layer-1" ? "Running…" : "Run JSearch Layer 1"}
+      </button>
+
+      <button
+        onClick={() => runAction("fetch-jobs-layer-2")}
+        disabled={loading !== null}
+        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
+      >
+        {loading === "fetch-jobs-layer-2" ? "Running…" : "Run JSearch Layer 2"}
+      </button>
+
+      <button
+        onClick={() => runAction("fetch-jobs-layer-3")}
+        disabled={loading !== null}
+        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
+      >
+        {loading === "fetch-jobs-layer-3" ? "Running…" : "Run JSearch Layer 3"}
       </button>
 
       <ResultPanel />
