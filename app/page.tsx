@@ -22,12 +22,28 @@ export default async function HomePage() {
         <section className="bg-primary px-4 py-16 text-white sm:px-6 sm:py-20">
           <div className="mx-auto max-w-4xl text-center">
             <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-              Gulf&apos;s #1 Finance &amp; AI Jobs Portal
+              Gulf Finance &amp; AI Jobs
             </h1>
-            <p className="mt-4 text-lg text-slate-300">
-              The GCC Finance &amp; AI Career Intelligence Platform
+            <p className="mt-3 text-lg text-slate-300">
+              The GCC&apos;s specialist portal for Finance &amp; AI careers
             </p>
-            <div className="mt-8">
+            {/* Trust pills */}
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+              {[
+                `${(financeCount + aiCount).toLocaleString()}+ live roles`,
+                "KSA · UAE · GCC",
+                "Updated daily",
+                "Finance & AI only",
+              ].map((pill) => (
+                <span
+                  key={pill}
+                  className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium text-slate-300"
+                >
+                  {pill}
+                </span>
+              ))}
+            </div>
+            <div className="mt-6">
               <HeroSearch />
             </div>
           </div>

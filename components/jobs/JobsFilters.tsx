@@ -310,6 +310,8 @@ export function JobsFilters({
   );
 }
 
+const DEFAULT_OPEN = new Set(["Category", "Country", "Work Type"]);
+
 function FilterGroup({
   label,
   children,
@@ -317,12 +319,24 @@ function FilterGroup({
   label: string;
   children: React.ReactNode;
 }) {
+  const [open, setOpen] = useState(() => DEFAULT_OPEN.has(label));
   return (
-    <div>
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+    <div className="border-b border-gray-100 pb-3 last:border-0">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center justify-between py-1 text-xs font-semibold uppercase tracking-wide text-gray-500 hover:text-primary"
+      >
         {label}
-      </p>
-      <div className="space-y-1.5">{children}</div>
+        <span className="text-gray-400" aria-hidden="true">
+          {open ? "▾" : "▸"}
+        </span>
+      </button>
+      {open && (
+        <div className="mt-2 space-y-1.5">
+          {children}
+        </div>
+      )}
     </div>
   );
 }
