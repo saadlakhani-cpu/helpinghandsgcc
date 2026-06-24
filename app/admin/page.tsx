@@ -413,7 +413,7 @@ export default async function AdminPage() {
       getAdminStats(),
       getSources(),
       getRecentJobs(25),
-      getRecentMatches(25),
+      getRecentMatches(10),
       getRecentAlerts(25),
       getRecruiterJobPosts(25),
     ]);
@@ -572,14 +572,21 @@ export default async function AdminPage() {
           <RecruiterJobsTable posts={recruiterJobs} />
         </section>
 
-        {/* ── Job Matches — Step 11 verification ──────────────────────────── */}
+        {/* ── Recent alert matches ─────────────────────────────────────────── */}
         <section>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
-            Job Matches{" "}
-            <span className="normal-case font-normal text-gray-400">
-              (last 25 · tracking verification)
-            </span>
-          </h2>
+          <div className="mb-3 flex flex-col gap-1">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+              Recent Alert Matches{" "}
+              <span className="normal-case font-normal text-gray-400">
+                (latest 10 sample)
+              </span>
+            </h2>
+            <p className="text-xs text-gray-500">
+              Matches are generated automatically for subscriber alerts. Use the
+              summary cards above for volume; this table is only a recent
+              activity check.
+            </p>
+          </div>
           <MatchesTable matches={recentMatches} />
         </section>
 
