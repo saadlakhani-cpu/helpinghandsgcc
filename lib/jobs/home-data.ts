@@ -29,7 +29,8 @@ export async function getHomePageData(): Promise<HomePageData> {
         .select("*")
         .eq("is_active", true)
         .eq("category", "Finance")
-        .order("date_scraped", { ascending: false })
+        .order("date_scraped", { ascending: false, nullsFirst: false })
+        .order("date_posted", { ascending: false })
         .order("freshness_score", { ascending: false })
         .limit(8),
       supabase
@@ -37,14 +38,15 @@ export async function getHomePageData(): Promise<HomePageData> {
         .select("*")
         .eq("is_active", true)
         .eq("category", "AI")
-        .order("date_scraped", { ascending: false })
+        .order("date_scraped", { ascending: false, nullsFirst: false })
+        .order("date_posted", { ascending: false })
         .order("freshness_score", { ascending: false })
         .limit(8),
       supabase
         .from("jobs")
         .select("date_scraped")
         .eq("is_active", true)
-        .order("date_scraped", { ascending: false })
+        .order("date_scraped", { ascending: false, nullsFirst: false })
         .limit(1)
         .maybeSingle(),
     ]);
