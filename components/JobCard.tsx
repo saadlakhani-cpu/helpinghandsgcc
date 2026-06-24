@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { ProtectedJobLink } from "@/components/ProtectedJobLink";
 import type { Job } from "@/lib/jobs/types";
 import { formatRelativeDate, isHotJob } from "@/lib/utils/date";
 import { formatLocation, getCountryFlag } from "@/lib/utils/location";
@@ -52,9 +52,9 @@ export function JobCard({ job }: JobCardProps) {
         </div>
         <div className="min-w-0 flex-1">
           <h3 className="truncate text-base font-bold text-primary">
-            <Link href={`/jobs/${job.slug}`} className="hover:underline">
+            <ProtectedJobLink href={`/jobs/${job.slug}`} className="hover:underline">
               {job.title}
-            </Link>
+            </ProtectedJobLink>
           </h3>
           <p className="mt-0.5 truncate text-sm text-gray-600">{job.company}</p>
         </div>
@@ -112,20 +112,18 @@ export function JobCard({ job }: JobCardProps) {
           {formatRelativeDate(job.date_posted)}
         </span>
         <div className="flex items-center gap-2">
-          <Link
+          <ProtectedJobLink
             href={`/jobs/${job.slug}`}
             className="text-sm font-medium text-gray-500 hover:text-primary"
           >
             Details
-          </Link>
-          <a
-            href={job.apply_url}
-            target="_blank"
-            rel="noopener noreferrer"
+          </ProtectedJobLink>
+          <ProtectedJobLink
+            href={`/jobs/${job.slug}?apply=1`}
             className="rounded-md bg-finance px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-700"
           >
             Apply →
-          </a>
+          </ProtectedJobLink>
         </div>
       </div>
     </article>
