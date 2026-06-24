@@ -103,11 +103,17 @@ export async function POST(request: NextRequest) {
       }
 
       // STEP D — Keyword categorization
-      const { category, subcategory } = categorizeJob(
+      const categoryResult = categorizeJob(
         title,
         description,
         keywordRows
       );
+      if (!categoryResult) {
+        skipped += 1;
+        continue;
+      }
+
+      const { category, subcategory } = categoryResult;
 
       // STEP E — Generate slug
       const slug = generateJobSlug(title, city);

@@ -134,11 +134,17 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      const { category, subcategory } = categorizeJob(
+      const categoryResult = categorizeJob(
         title,
         description,
         keywordRows
       );
+      if (!categoryResult) {
+        skipped += 1;
+        continue;
+      }
+
+      const { category, subcategory } = categoryResult;
 
       const slug = generateJobSlug(title, city);
 
