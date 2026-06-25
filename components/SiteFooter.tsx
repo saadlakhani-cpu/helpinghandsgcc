@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CONTACT_EMAIL, SITE_NAME } from "@/lib/constants";
+import { CONTACT_EMAIL, CV_REVIEW_ROUTE, SITE_NAME } from "@/lib/constants";
 
 export function SiteFooter() {
   const year = new Date().getFullYear();
@@ -44,14 +44,9 @@ export function SiteFooter() {
               <li><Link href="/recruiters" className="hover:text-primary">Post a Job</Link></li>
               <li><Link href="/recruiters" className="hover:text-primary">Recruiter Portal</Link></li>
               <li>
-                <a
-                  href="https://docs.google.com/forms/d/e/1FAIpQLScLE8DDCoR5fwD-DCp0eFnKqjWj1G19nvsXX0_eIQNUlFJZDQ/viewform"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-primary"
-                >
+                <Link href={CV_REVIEW_ROUTE} className="hover:text-primary">
                   CV Review
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

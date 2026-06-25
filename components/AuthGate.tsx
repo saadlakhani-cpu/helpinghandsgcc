@@ -11,6 +11,7 @@ const PROTECTED_PREFIXES = [
   "/profile",
   "/recruiters",
   "/subscribe",
+  "/cv-review",
 ];
 
 function isProtectedPath(pathname: string): boolean {

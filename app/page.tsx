@@ -3,7 +3,7 @@ import { HeroSearch } from "@/components/HeroSearch";
 import { JobCard } from "@/components/JobCard";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
-import { CONTACT_EMAIL, CV_REVIEW_FORM_URL, RECRUITER_FORM_URL } from "@/lib/constants";
+import { CONTACT_EMAIL, CV_REVIEW_ROUTE, RECRUITER_FORM_URL } from "@/lib/constants";
 import { getHomePageData } from "@/lib/jobs/home-data";
 import { formatHoursAgo } from "@/lib/utils/date";
 
@@ -94,7 +94,7 @@ export default async function HomePage() {
                   presents your experience.
                 </p>
                 <Link
-                  href={CV_REVIEW_FORM_URL}
+                  href={CV_REVIEW_ROUTE}
                   className="mt-4 inline-flex rounded-md bg-finance px-5 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-700"
                 >
                   Request CV review
