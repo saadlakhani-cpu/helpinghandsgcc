@@ -54,6 +54,16 @@ export type RecentMatchRow = {
   job_slug: string;
 };
 
+export type RecentSubscriberRow = {
+  id: string;
+  name: string;
+  email: string;
+  current_role: string | null;
+  preferred_category: string | null;
+  preferred_country: string | null;
+  created_at: string;
+};
+
 export type RecruiterJobPostRow = {
   id: string;
   title: string;
@@ -299,6 +309,21 @@ export async function getRecentMatches(limit = 25): Promise<RecentMatchRow[]> {
       job_slug: jobMap[m.job_id]?.slug ?? "",
     })
   );
+}
+
+export async function getRecentSubscribers(
+  limit = 10
+): Promise<RecentSubscriberRow[]> {
+  const supabase = createAdminClient();
+  const { data } = await supabase
+    .from("subscribers")
+    .select(
+      "id, name, email, current_role, preferred_category, preferred_country, created_at"
+    )
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  return (data ?? []) as RecentSubscriberRow[];
 }
 
 export async function getRecruiterJobPosts(

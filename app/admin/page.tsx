@@ -1,15 +1,15 @@
 import Link from "next/link";
 import {
   getAdminStats,
-  getRecentAlerts,
   getRecentJobs,
-  getRecentMatches,
+  getRecentSubscribers,
   getRecruiterJobPosts,
   type RecruiterJobPostRow,
   getSources,
   type RecentAlertRow,
   type RecentJobRow,
   type RecentMatchRow,
+  type RecentSubscriberRow,
   type SourceRow,
 } from "@/lib/admin/stats";
 import { AdminActions } from "@/app/admin/_components/AdminActions";
@@ -222,6 +222,46 @@ function RecentJobsTable({ jobs }: { jobs: RecentJobRow[] }) {
 
 // ── Job matches table (Step 11 verification) ──────────────────────────────────
 
+function SubscribersTable({ subscribers }: { subscribers: RecentSubscriberRow[] }) {
+  return (
+    <TableWrap>
+      <table className="min-w-full">
+        <thead className="border-b border-gray-100 bg-gray-50">
+          <tr>
+            <Th>Name</Th>
+            <Th>Email</Th>
+            <Th>Current Role</Th>
+            <Th>Preference</Th>
+            <Th>Joined</Th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-100">
+          {subscribers.length === 0 ? (
+            <EmptyRow cols={5} message="No subscribers yet" />
+          ) : (
+            subscribers.map((s) => (
+              <tr key={s.id} className="hover:bg-gray-50">
+                <Td>
+                  <p className="font-medium">{s.name}</p>
+                </Td>
+                <Td className="text-xs text-gray-500">{s.email}</Td>
+                <Td>{s.current_role ?? "-"}</Td>
+                <Td>
+                  <p>{s.preferred_category ?? "Any category"}</p>
+                  <p className="text-xs text-gray-400">
+                    {s.preferred_country ?? "Any country"}
+                  </p>
+                </Td>
+                <Td className="text-xs text-gray-500">{fmt(s.created_at)}</Td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </TableWrap>
+  );
+}
+
 function MatchesTable({ matches }: { matches: RecentMatchRow[] }) {
   return (
     <TableWrap>
@@ -408,13 +448,12 @@ function RecruiterJobsTable({ posts }: { posts: RecruiterJobPostRow[] }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function AdminPage() {
-  const [stats, sources, recentJobs, recentMatches, recentAlerts, recruiterJobs] =
+  const [stats, sources, recentJobs, recentSubscribers, recruiterJobs] =
     await Promise.all([
       getAdminStats(),
       getSources(),
       getRecentJobs(25),
-      getRecentMatches(10),
-      getRecentAlerts(25),
+      getRecentSubscribers(10),
       getRecruiterJobPosts(25),
     ]);
 
@@ -572,34 +611,22 @@ export default async function AdminPage() {
           <RecruiterJobsTable posts={recruiterJobs} />
         </section>
 
-        {/* ── Recent alert matches ─────────────────────────────────────────── */}
+        {/* ── Latest subscribers ───────────────────────────────────────────── */}
         <section>
           <div className="mb-3 flex flex-col gap-1">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-              Recent Alert Matches{" "}
+              Latest Subscribers{" "}
               <span className="normal-case font-normal text-gray-400">
-                (latest 10 sample)
+                (latest 10)
               </span>
             </h2>
             <p className="text-xs text-gray-500">
-              Matches are generated automatically for subscriber alerts. Use the
-              summary cards above for volume; this table is only a recent
-              activity check.
+              Latest candidates who subscribed for job alerts.
             </p>
           </div>
-          <MatchesTable matches={recentMatches} />
+          <SubscribersTable subscribers={recentSubscribers} />
         </section>
 
-        {/* ── Alerts Log — Step 11 verification ───────────────────────────── */}
-        <section>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
-            Alerts Log{" "}
-            <span className="normal-case font-normal text-gray-400">
-              (last 25 · tracking verification)
-            </span>
-          </h2>
-          <AlertsLogTable alerts={recentAlerts} />
-        </section>
       </main>
     </div>
   );

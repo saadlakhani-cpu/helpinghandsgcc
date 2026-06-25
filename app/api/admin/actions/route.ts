@@ -45,6 +45,13 @@ export async function POST(request: NextRequest) {
     action === "fetch-jobs-layer-1" ||
     action === "fetch-jobs-layer-2" ||
     action === "fetch-jobs-layer-3" ||
+    action === "fetch-daily-priority-1" ||
+    action === "fetch-daily-priority-2" ||
+    action === "fetch-daily-priority-3" ||
+    action === "fetch-daily-priority-4" ||
+    action === "fetch-daily-priority-5" ||
+    action === "fetch-twice-weekly-sources" ||
+    action === "fetch-weekly-broad-sources" ||
     action === "fetch-finance-batch-1" ||
     action === "fetch-finance-batch-2" ||
     action === "fetch-finance-batch-3" ||
@@ -56,6 +63,20 @@ export async function POST(request: NextRequest) {
       "fetch-jobs-layer-1": "/api/cron/fetch-jobs/layer1",
       "fetch-jobs-layer-2": "/api/cron/fetch-jobs/layer2",
       "fetch-jobs-layer-3": "/api/cron/fetch-jobs/layer3",
+      "fetch-daily-priority-1":
+        "/api/cron/fetch-jobs/layer1?date_posted=week&offset=0&limit=5&pages=1",
+      "fetch-daily-priority-2":
+        "/api/cron/fetch-jobs/layer1?date_posted=week&offset=5&limit=5&pages=1",
+      "fetch-daily-priority-3":
+        "/api/cron/fetch-jobs/layer1?date_posted=week&offset=10&limit=5&pages=1",
+      "fetch-daily-priority-4":
+        "/api/cron/fetch-jobs/layer1?date_posted=week&offset=15&limit=5&pages=1",
+      "fetch-daily-priority-5":
+        "/api/cron/fetch-jobs/layer1?date_posted=week&offset=20&limit=5&pages=1",
+      "fetch-twice-weekly-sources":
+        "/api/cron/fetch-jobs/layer2?date_posted=week&offset=0&limit=8&pages=1",
+      "fetch-weekly-broad-sources":
+        "/api/cron/fetch-jobs/layer3?date_posted=week&offset=0&limit=8&pages=1",
       "fetch-finance-batch-1":
         "/api/cron/fetch-jobs/layer1?date_posted=week&offset=0&limit=5&pages=1",
       "fetch-finance-batch-2":

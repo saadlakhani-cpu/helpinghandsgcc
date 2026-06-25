@@ -125,68 +125,83 @@ export function AdminActions() {
       <hr className="border-gray-200" />
 
       <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-        JSearch scheduled layers
+        Daily priority sources
+      </p>
+      <p className="text-xs text-gray-500">
+        LinkedIn, Naukri Gulf and Indeed. Run batches one by one to avoid timeouts.
       </p>
 
       <button
-        onClick={() => runAction("fetch-jobs-layer-1")}
+        onClick={() => runAction("fetch-daily-priority-1")}
         disabled={loading !== null}
         className="w-full rounded-lg bg-finance px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:opacity-50"
       >
-        {loading === "fetch-jobs-layer-1" ? "Running..." : "Run JSearch Layer 1"}
+        {loading === "fetch-daily-priority-1" ? "Running..." : "Daily Priority 1"}
       </button>
 
       <button
-        onClick={() => runAction("fetch-jobs-layer-2")}
+        onClick={() => runAction("fetch-daily-priority-2")}
         disabled={loading !== null}
-        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
+        className="w-full rounded-lg bg-finance px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:opacity-50"
       >
-        {loading === "fetch-jobs-layer-2" ? "Running..." : "Run JSearch Layer 2"}
+        {loading === "fetch-daily-priority-2" ? "Running..." : "Daily Priority 2"}
       </button>
 
       <button
-        onClick={() => runAction("fetch-jobs-layer-3")}
+        onClick={() => runAction("fetch-daily-priority-3")}
         disabled={loading !== null}
-        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
+        className="w-full rounded-lg bg-finance px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:opacity-50"
       >
-        {loading === "fetch-jobs-layer-3" ? "Running..." : "Run JSearch Layer 3"}
+        {loading === "fetch-daily-priority-3" ? "Running..." : "Daily Priority 3"}
+      </button>
+
+      <button
+        onClick={() => runAction("fetch-daily-priority-4")}
+        disabled={loading !== null}
+        className="w-full rounded-lg bg-finance px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:opacity-50"
+      >
+        {loading === "fetch-daily-priority-4" ? "Running..." : "Daily Priority 4"}
+      </button>
+
+      <button
+        onClick={() => runAction("fetch-daily-priority-5")}
+        disabled={loading !== null}
+        className="w-full rounded-lg bg-finance px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:opacity-50"
+      >
+        {loading === "fetch-daily-priority-5" ? "Running..." : "Daily Priority 5"}
       </button>
 
       <p className="pt-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-        JSearch safe batches
+        Twice-weekly sources
       </p>
 
       <button
-        onClick={() => runAction("fetch-finance-batch-1")}
+        onClick={() => runAction("fetch-twice-weekly-sources")}
         disabled={loading !== null}
-        className="w-full rounded-lg bg-finance px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:opacity-50"
+        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
       >
-        {loading === "fetch-finance-batch-1" ? "Running..." : "Finance Batch 1"}
+        {loading === "fetch-twice-weekly-sources"
+          ? "Running..."
+          : "Bayt, GulfTalent & recruiters"}
       </button>
 
-      <button
-        onClick={() => runAction("fetch-finance-batch-2")}
-        disabled={loading !== null}
-        className="w-full rounded-lg bg-finance px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:opacity-50"
-      >
-        {loading === "fetch-finance-batch-2" ? "Running..." : "Finance Batch 2"}
-      </button>
+      <p className="pt-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+        Weekly broad sources
+      </p>
 
       <button
-        onClick={() => runAction("fetch-finance-batch-3")}
+        onClick={() => runAction("fetch-weekly-broad-sources")}
         disabled={loading !== null}
-        className="w-full rounded-lg bg-finance px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:opacity-50"
+        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
       >
-        {loading === "fetch-finance-batch-3" ? "Running..." : "Finance Batch 3"}
+        {loading === "fetch-weekly-broad-sources"
+          ? "Running..."
+          : "Wider GCC / broad portals"}
       </button>
 
-      <button
-        onClick={() => runAction("fetch-finance-batch-4")}
-        disabled={loading !== null}
-        className="w-full rounded-lg bg-finance px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:opacity-50"
-      >
-        {loading === "fetch-finance-batch-4" ? "Running..." : "Finance Batch 4"}
-      </button>
+      <p className="pt-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+        AI weekly source
+      </p>
 
       <button
         onClick={() => runAction("fetch-ai-jobs")}
@@ -194,14 +209,6 @@ export function AdminActions() {
         className="w-full rounded-lg bg-ai px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700 disabled:opacity-50"
       >
         {loading === "fetch-ai-jobs" ? "Running..." : "AI Jobs Batch"}
-      </button>
-
-      <button
-        onClick={() => runAction("fetch-gcc-wider")}
-        disabled={loading !== null}
-        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
-      >
-        {loading === "fetch-gcc-wider" ? "Running..." : "Wider GCC Batch"}
       </button>
 
       <ResultPanel />
