@@ -1,3 +1,4 @@
+import { CvTailorTeaser } from "@/components/CvTailorTeaser";
 import { ProtectedJobLink } from "@/components/ProtectedJobLink";
 import type { Job } from "@/lib/jobs/types";
 import { formatRelativeDate, isHotJob } from "@/lib/utils/date";
@@ -111,7 +112,8 @@ export function JobCard({ job }: JobCardProps) {
         <span className="text-xs text-gray-500">
           {formatRelativeDate(job.date_posted)}
         </span>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <CvTailorTeaser />
           <ProtectedJobLink
             href={`/jobs/${job.slug}`}
             className="text-sm font-medium text-gray-500 hover:text-primary"
