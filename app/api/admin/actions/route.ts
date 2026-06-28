@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateJobFingerprint } from "@/lib/ingest/fingerprint";
+import { importJobLinks } from "@/lib/ingest/import-job-links";
 import { generateJobSlug } from "@/lib/ingest/slug";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -39,6 +40,25 @@ export async function POST(request: NextRequest) {
     });
     const data = await res.json().catch(() => ({}));
     return NextResponse.json(data, { status: res.status });
+  }
+
+  if (action === "import-job-links") {
+    const supabase = createAdminClient();
+    const { data: keywords, error: keywordsError } = await supabase
+      .from("keywords")
+      .select("keyword, category, subcategory, match_field");
+
+    if (keywordsError) {
+      return NextResponse.json({ error: keywordsError.message }, { status: 500 });
+    }
+
+    const result = await importJobLinks({
+      supabase,
+      rawLinks: body.links,
+      keywordRows: keywords ?? [],
+    });
+
+    return NextResponse.json(result);
   }
 
   if (
