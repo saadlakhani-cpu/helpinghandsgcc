@@ -78,6 +78,18 @@ export type RecruiterJobPostRow = {
   work_email: string;
 };
 
+export type ManualJobImportRunRow = {
+  id: string;
+  imported_by: string | null;
+  pasted_count: number;
+  unique_count: number;
+  duplicate_link_count: number;
+  inserted_count: number;
+  skipped_count: number;
+  failed_count: number;
+  created_at: string;
+};
+
 // ── Helper ────────────────────────────────────────────────────────────────────
 
 function unique(ids: string[]): string[] {
@@ -383,4 +395,21 @@ export async function getRecruiterJobPosts(
       work_email: profileMap[post.recruiter_profile_id]?.work_email ?? "",
     })
   );
+}
+
+export async function getManualJobImportRuns(
+  limit = 10
+): Promise<ManualJobImportRunRow[]> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("manual_job_import_runs")
+    .select(
+      "id, imported_by, pasted_count, unique_count, duplicate_link_count, inserted_count, skipped_count, failed_count, created_at"
+    )
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) return [];
+
+  return (data ?? []) as ManualJobImportRunRow[];
 }

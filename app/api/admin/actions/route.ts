@@ -56,6 +56,8 @@ export async function POST(request: NextRequest) {
       supabase,
       rawLinks: body.links,
       keywordRows: keywords ?? [],
+      importedBy:
+        typeof body.importedBy === "string" ? body.importedBy : undefined,
     });
 
     return NextResponse.json(result);

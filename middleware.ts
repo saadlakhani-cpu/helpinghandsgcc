@@ -15,9 +15,25 @@ export function middleware(request: NextRequest) {
     }
   }
 
+  if (
+    pathname.startsWith("/manual-import") &&
+    !pathname.startsWith("/manual-import/login")
+  ) {
+    const token = request.cookies.get("manual_import_token")?.value;
+    const secret =
+      process.env.MANUAL_IMPORT_SESSION_SECRET ||
+      process.env.MANUAL_IMPORT_PASSWORD;
+
+    if (!secret || token !== secret) {
+      const loginUrl = new URL("/manual-import/login", request.url);
+      loginUrl.searchParams.set("from", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/manual-import/:path*"],
 };

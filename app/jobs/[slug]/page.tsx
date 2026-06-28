@@ -110,6 +110,8 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
   const isFinance = job.category === "Finance";
   const hot = isHotJob(job.date_posted);
   const jsonLd = buildJobPostingSchema(job);
+  const showRecruiterSource =
+    job.recruiter_source && job.recruiter_source !== "Manual Import";
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -146,7 +148,7 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
             </div>
 
             <div className="mb-6 flex flex-wrap gap-2">
-              {job.recruiter_source && (
+              {showRecruiterSource && (
                 <span className="rounded-full bg-recruiter/10 px-3 py-1 text-xs font-medium text-recruiter">
                   {job.recruiter_source}
                 </span>

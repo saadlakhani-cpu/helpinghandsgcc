@@ -15,6 +15,8 @@ type ActionResult = {
   cutoff_date?: string;
   // fetch-jobs
   received?: number;
+  unique?: number;
+  duplicate_links?: number;
   inserted?: number;
   skipped?: number;
   layer?: string;
@@ -22,14 +24,6 @@ type ActionResult = {
     query: string;
     raw_count: number;
     usable_count: number;
-  }>;
-  // manual imports
-  details?: Array<{
-    url: string;
-    status: "inserted" | "skipped" | "failed";
-    reason?: string;
-    title?: string;
-    company?: string;
   }>;
   // generic
   message?: string;
@@ -39,7 +33,6 @@ type ActionResult = {
 export function AdminActions() {
   const [loading, setLoading] = useState<string | null>(null);
   const [result, setResult] = useState<ActionResult | null>(null);
-  const [jobLinks, setJobLinks] = useState("");
 
   async function runAction(action: string) {
     setLoading(action);
@@ -59,34 +52,12 @@ export function AdminActions() {
     }
   }
 
-  async function importLinks() {
-    setLoading("import-job-links");
-    setResult(null);
-    try {
-      const res = await fetch("/api/admin/actions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "import-job-links", links: jobLinks }),
-      });
-      const data = (await res.json()) as ActionResult;
-      setResult(data);
-      if (res.ok && (data.inserted ?? 0) > 0) {
-        setJobLinks("");
-      }
-    } catch {
-      setResult({ error: "Network error" });
-    } finally {
-      setLoading(null);
-    }
-  }
-
   function ResultPanel() {
     if (!result) return null;
     const isError = Boolean(result.error);
     const isSendAlerts = result.sent !== undefined || result.subscribers_processed !== undefined;
     const isExpire = result.expired !== undefined || result.freshness_updated !== undefined;
     const isFetchJobs = result.received !== undefined || result.inserted !== undefined;
-    const isManualImport = Boolean(result.details);
     return (
       <div
         className={`rounded-lg p-3 text-xs ${
@@ -97,25 +68,6 @@ export function AdminActions() {
           <p>Error: {result.error}</p>
         ) : result.message ? (
           <p>{result.message}</p>
-        ) : isManualImport ? (
-          <div className="space-y-2">
-            <ul className="space-y-0.5">
-              <li>Links received: <strong>{result.received ?? 0}</strong></li>
-              <li>Inserted: <strong>{result.inserted ?? 0}</strong></li>
-              <li>Skipped: <strong>{result.skipped ?? 0}</strong></li>
-              <li>Failed: <strong>{result.failed ?? 0}</strong></li>
-            </ul>
-            <ul className="space-y-1 border-t border-green-100 pt-2">
-              {result.details?.slice(0, 8).map((row) => (
-                <li key={row.url} className="break-words text-gray-700">
-                  <strong>{row.status}</strong>
-                  {row.title ? `: ${row.title}` : ""}{" "}
-                  {row.company ? `(${row.company})` : ""}
-                  {row.reason ? ` - ${row.reason}` : ""}
-                </li>
-              ))}
-            </ul>
-          </div>
         ) : isSendAlerts ? (
           <ul className="space-y-0.5">
             <li>Subscribers processed: <strong>{result.subscribers_processed ?? 0}</strong></li>
@@ -171,32 +123,6 @@ export function AdminActions() {
       >
         {loading === "expire-jobs" ? "Running..." : "Run Expire-Jobs"}
       </button>
-
-      <hr className="border-gray-200" />
-
-      <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">
-          Manual job link import
-        </p>
-        <p className="mt-1 text-xs text-gray-600">
-          Paste LinkedIn or Naukri Gulf job URLs, one per line. The importer will
-          read available page details, classify Finance/AI, and add non-duplicate jobs.
-        </p>
-        <textarea
-          value={jobLinks}
-          onChange={(event) => setJobLinks(event.target.value)}
-          rows={5}
-          placeholder={"https://www.linkedin.com/jobs/view/...\nhttps://www.naukrigulf.com/..."}
-          className="mt-3 w-full rounded-md border border-amber-200 bg-white px-3 py-2 text-xs text-gray-900 outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
-        />
-        <button
-          onClick={importLinks}
-          disabled={loading !== null || jobLinks.trim().length === 0}
-          className="mt-2 w-full rounded-lg bg-amber-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-700 disabled:opacity-50"
-        >
-          {loading === "import-job-links" ? "Importing..." : "Import pasted job links"}
-        </button>
-      </div>
 
       <hr className="border-gray-200" />
 

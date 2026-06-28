@@ -40,6 +40,8 @@ export function JobCard({ job }: JobCardProps) {
   const hot = isHotJob(job.date_posted);
   const initials = companyInitials(job.company);
   const [avatarBg, avatarText] = companyAvatarColors(job.company);
+  const showRecruiterSource =
+    job.recruiter_source && job.recruiter_source !== "Manual Import";
 
   return (
     <article className="flex flex-col rounded-lg border border-gray-100 bg-white p-5 shadow-sm transition hover:shadow-md">
@@ -73,7 +75,7 @@ export function JobCard({ job }: JobCardProps) {
 
       {/* Tags */}
       <div className="mb-3 flex flex-wrap gap-2">
-        {job.recruiter_source && (
+        {showRecruiterSource && (
           <span className="rounded-full bg-recruiter/10 px-2.5 py-0.5 text-xs font-medium text-recruiter">
             {job.recruiter_source}
           </span>

@@ -1,11 +1,13 @@
 import Link from "next/link";
 import {
   getAdminStats,
+  getManualJobImportRuns,
   getRecentJobs,
   getRecentSubscribers,
   getRecruiterJobPosts,
   type RecruiterJobPostRow,
   getSources,
+  type ManualJobImportRunRow,
   type RecentAlertRow,
   type RecentJobRow,
   type RecentMatchRow,
@@ -445,16 +447,74 @@ function RecruiterJobsTable({ posts }: { posts: RecruiterJobPostRow[] }) {
   );
 }
 
+function ManualImportRunsTable({ runs }: { runs: ManualJobImportRunRow[] }) {
+  return (
+    <TableWrap>
+      <table className="min-w-full">
+        <thead className="border-b border-gray-100 bg-gray-50">
+          <tr>
+            <Th>Date</Th>
+            <Th>Imported By</Th>
+            <Th>Pasted</Th>
+            <Th>Unique</Th>
+            <Th>Duplicate Links</Th>
+            <Th>Inserted</Th>
+            <Th>Skipped</Th>
+            <Th>Failed</Th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-100">
+          {runs.length === 0 ? (
+            <EmptyRow
+              cols={8}
+              message="No manual import history yet. Run the Supabase migration if this stays empty after imports."
+            />
+          ) : (
+            runs.map((run) => (
+              <tr key={run.id} className="hover:bg-gray-50">
+                <Td className="text-xs text-gray-500">{fmt(run.created_at)}</Td>
+                <Td>{run.imported_by ?? "-"}</Td>
+                <Td>{run.pasted_count}</Td>
+                <Td>{run.unique_count}</Td>
+                <Td>{run.duplicate_link_count}</Td>
+                <Td>
+                  <span className="font-semibold text-green-700">
+                    {run.inserted_count}
+                  </span>
+                </Td>
+                <Td>{run.skipped_count}</Td>
+                <Td>
+                  <span className={run.failed_count > 0 ? "text-red-600" : ""}>
+                    {run.failed_count}
+                  </span>
+                </Td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </TableWrap>
+  );
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function AdminPage() {
-  const [stats, sources, recentJobs, recentSubscribers, recruiterJobs] =
+  const [
+    stats,
+    sources,
+    recentJobs,
+    recentSubscribers,
+    recruiterJobs,
+    manualImportRuns,
+  ] =
     await Promise.all([
       getAdminStats(),
       getSources(),
       getRecentJobs(25),
       getRecentSubscribers(10),
       getRecruiterJobPosts(25),
+      getManualJobImportRuns(10),
     ]);
 
   return (
@@ -567,6 +627,13 @@ export default async function AdminPage() {
               Actions
             </h2>
             <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+              <Link
+                href="/manual-import"
+                target="_blank"
+                className="mb-3 block rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-center text-sm font-semibold text-amber-700 transition hover:bg-amber-100"
+              >
+                Open Manual Import Screen
+              </Link>
               <AdminActions />
             </div>
           </section>
@@ -590,6 +657,22 @@ export default async function AdminPage() {
             </Link>
           </div>
           <RecentJobsTable jobs={recentJobs} />
+        </section>
+
+        <section>
+          <div className="mb-3 flex flex-col gap-1">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+              Manual Import History{" "}
+              <span className="normal-case font-normal text-gray-400">
+                (latest 10)
+              </span>
+            </h2>
+            <p className="text-xs text-gray-500">
+              Private admin tracking for pasted job links, duplicates, inserted
+              jobs, skipped jobs, and failures.
+            </p>
+          </div>
+          <ManualImportRunsTable runs={manualImportRuns} />
         </section>
 
         <section>

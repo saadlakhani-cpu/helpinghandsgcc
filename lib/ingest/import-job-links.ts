@@ -25,9 +25,12 @@ type ImportedJob = {
 
 export type ManualImportResult = {
   received: number;
+  unique: number;
+  duplicate_links: number;
   inserted: number;
   skipped: number;
   failed: number;
+  run_id?: string;
   details: Array<{
     url: string;
     status: "inserted" | "skipped" | "failed";
@@ -215,19 +218,67 @@ export async function importJobLinks({
   supabase,
   rawLinks,
   keywordRows,
+  importedBy,
 }: {
   supabase: SupabaseClient;
   rawLinks: unknown;
   keywordRows: KeywordRow[];
+  importedBy?: string;
 }): Promise<ManualImportResult> {
-  const links = Array.from(new Set(normalizeLinks(rawLinks))).slice(0, 25);
+  const pastedLinks = normalizeLinks(rawLinks);
+  const links = Array.from(new Set(pastedLinks)).slice(0, 25);
+  const duplicateLinkCount = Math.max(pastedLinks.length - new Set(pastedLinks).size, 0);
   const result: ManualImportResult = {
-    received: links.length,
+    received: pastedLinks.length,
+    unique: links.length,
+    duplicate_links: duplicateLinkCount,
     inserted: 0,
     skipped: 0,
     failed: 0,
     details: [],
   };
+  const { data: run } = await supabase
+    .from("manual_job_import_runs")
+    .insert({
+      imported_by: importedBy?.trim() || null,
+      pasted_count: pastedLinks.length,
+      unique_count: links.length,
+      duplicate_link_count: duplicateLinkCount,
+    })
+    .select("id")
+    .maybeSingle();
+  const runId = typeof run?.id === "string" ? run.id : undefined;
+  result.run_id = runId;
+
+  async function trackItem(item: ManualImportResult["details"][number] & {
+    platform?: string;
+    job_id?: string;
+  }) {
+    result.details.push(item);
+
+    if (!runId) return;
+
+    await supabase.from("manual_job_import_items").insert({
+      run_id: runId,
+      url: item.url,
+      status: item.status,
+      reason: item.reason ?? null,
+      title: item.title ?? null,
+      company: item.company ?? null,
+      platform: item.platform ?? null,
+      job_id: item.job_id ?? null,
+    });
+  }
+
+  for (const duplicateLink of pastedLinks.filter(
+    (link, index) => pastedLinks.indexOf(link) !== index
+  )) {
+    await trackItem({
+      url: duplicateLink,
+      status: "skipped",
+      reason: "Duplicate pasted link",
+    });
+  }
 
   for (const rawLink of links) {
     let url: URL;
@@ -235,7 +286,7 @@ export async function importJobLinks({
       url = new URL(rawLink);
     } catch {
       result.failed += 1;
-      result.details.push({ url: rawLink, status: "failed", reason: "Invalid URL" });
+      await trackItem({ url: rawLink, status: "failed", reason: "Invalid URL" });
       continue;
     }
 
@@ -243,7 +294,7 @@ export async function importJobLinks({
       const imported = await fetchJobMetadata(url);
       if (!imported) {
         result.failed += 1;
-        result.details.push({
+        await trackItem({
           url: rawLink,
           status: "failed",
           reason: "Could not read job page metadata",
@@ -262,12 +313,13 @@ export async function importJobLinks({
 
       if (!categoryResult) {
         result.skipped += 1;
-        result.details.push({
+        await trackItem({
           url: rawLink,
           status: "skipped",
           reason: "Not classified as Finance or AI",
           title,
           company,
+          platform: imported.platform,
         });
         continue;
       }
@@ -281,65 +333,89 @@ export async function importJobLinks({
 
       if (existing) {
         result.skipped += 1;
-        result.details.push({
+        await trackItem({
           url: rawLink,
           status: "skipped",
           reason: "Duplicate job",
           title,
           company,
+          platform: imported.platform,
         });
         continue;
       }
 
       const date_posted = new Date().toISOString().slice(0, 10);
       const source_priority = getSourcePriority(imported.platform);
-      const { error } = await supabase.from("jobs").insert({
-        title,
-        slug: generateJobSlug(title, city),
-        category: categoryResult.category,
-        subcategory: categoryResult.subcategory,
-        company,
-        recruiter_source: "Manual Import",
-        platform: imported.platform,
-        country,
-        city,
-        work_type,
-        seniority,
-        date_posted,
-        date_scraped: new Date().toISOString(),
-        apply_url: imported.applyUrl,
-        salary_range: null,
-        experience_years: null,
-        description_snippet: description.slice(0, 1200),
-        job_fingerprint: fingerprint,
-        freshness_score: calculateFreshnessScore(source_priority, date_posted),
-        source_priority,
-        is_featured: false,
-        is_active: true,
-      });
+      const { data: insertedJob, error } = await supabase
+        .from("jobs")
+        .insert({
+          title,
+          slug: generateJobSlug(title, city),
+          category: categoryResult.category,
+          subcategory: categoryResult.subcategory,
+          company,
+          recruiter_source: "Manual Import",
+          platform: imported.platform,
+          country,
+          city,
+          work_type,
+          seniority,
+          date_posted,
+          date_scraped: new Date().toISOString(),
+          apply_url: imported.applyUrl,
+          salary_range: null,
+          experience_years: null,
+          description_snippet: description.slice(0, 1200),
+          job_fingerprint: fingerprint,
+          freshness_score: calculateFreshnessScore(source_priority, date_posted),
+          source_priority,
+          is_featured: false,
+          is_active: true,
+        })
+        .select("id")
+        .maybeSingle();
 
       if (error) {
         result.failed += 1;
-        result.details.push({
+        await trackItem({
           url: rawLink,
           status: "failed",
           reason: error.message,
           title,
           company,
+          platform: imported.platform,
         });
         continue;
       }
 
       result.inserted += 1;
-      result.details.push({ url: rawLink, status: "inserted", title, company });
+      await trackItem({
+        url: rawLink,
+        status: "inserted",
+        title,
+        company,
+        platform: imported.platform,
+        job_id: typeof insertedJob?.id === "string" ? insertedJob.id : undefined,
+      });
     } catch (error) {
       result.failed += 1;
-      result.details.push({
+      await trackItem({
         url: rawLink,
         status: "failed",
         reason: error instanceof Error ? error.message : "Import failed",
       });
     }
+  }
+
+  if (runId) {
+    await supabase
+      .from("manual_job_import_runs")
+      .update({
+        inserted_count: result.inserted,
+        skipped_count: result.skipped + duplicateLinkCount,
+        failed_count: result.failed,
+      })
+      .eq("id", runId);
   }
 
   return result;
