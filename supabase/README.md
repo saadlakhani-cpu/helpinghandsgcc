@@ -90,3 +90,13 @@ Example: `/api/jobs?category=Finance&country=KSA&date_range=7days&page=1&limit=2
 Create a public or private bucket named `resumes` in **Storage** for resume PDF uploads.
 
 For Step 8 endpoints, also set `ANTHROPIC_API_KEY` in `.env.local`.
+
+## Hifz Command Center (`/hifz`)
+
+Run `migrations/20260821000001_create_hifz_tables.sql` to create `hifz_players`
+and seed the family roster (Zayn, Ahmad, Muhammad, Abiha) with starter PINs —
+change those PINs (or the seed rows entirely) before sharing the link with the
+family. Set `HIFZ_FAMILY_PASSCODE` in `.env.local`; the page and its
+`/api/hifz/*` routes are otherwise unreachable (see `middleware.ts`). All DB
+access goes through `lib/supabase/admin.ts`, same as every other table here —
+RLS is enabled with no policies.

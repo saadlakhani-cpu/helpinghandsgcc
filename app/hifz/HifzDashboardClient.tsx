@@ -1,15 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  AVATAR_CHOICES,
   CASH_OUT_THRESHOLD,
+  CHARACTER_COLORS,
   CURRENCY_META,
   DAILY_COMPLETE_BONUS_COINS,
   DAILY_COMPLETE_BONUS_GEMS,
   DIFFICULTY_META,
   QUEST_TITLES,
-  STORAGE_KEY,
   WEEKDAY_LABELS,
   allTasksDone,
   coinsToCash,
@@ -18,7 +17,6 @@ import {
   getNextRamadanStart,
   localDateString,
   rankPlayers,
-  rolloverPlayer,
   taskReward,
   type CashOutRecord,
   type Currency,
@@ -27,7 +25,6 @@ import {
   type Player,
   type QuestKey,
 } from "./lib";
-import { buildDefaultPlayers } from "./seed";
 import {
   SURAHS,
   TOTAL_AYAHS,
@@ -37,6 +34,16 @@ import {
   rangeAyahCount,
   surahByNumber,
 } from "./quran";
+import { GearItem, computeUnlockUpdate } from "./gear";
+import { Character } from "./Character";
+import { FamilyGate } from "./FamilyGate";
+import { CharacterSelect } from "./CharacterSelect";
+import { ApiError, hifzApi } from "./api";
+
+function isOnline(player: Player): boolean {
+  const diff = Date.now() - new Date(player.updatedAt).getTime();
+  return diff >= 0 && diff < 3 * 60 * 1000;
+}
 
 // ── Small building blocks ────────────────────────────────────────────────────
 
@@ -153,48 +160,6 @@ function RamadanCountdown({ now }: { now: Date | null }) {
   );
 }
 
-// ── Player switcher ───────────────────────────────────────────────────────────
-
-function PlayerSwitcher({
-  players,
-  activeId,
-  onSelect,
-}: {
-  players: Player[];
-  activeId: string;
-  onSelect: (id: string) => void;
-}) {
-  return (
-    <div className="flex flex-wrap gap-2">
-      {players.map((p) => {
-        const active = p.id === activeId;
-        const done = allTasksDone(p.tasks);
-        return (
-          <button
-            key={p.id}
-            type="button"
-            onClick={() => onSelect(p.id)}
-            className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold transition ${
-              active
-                ? "border-cyan-400 bg-cyan-400/10 text-cyan-300 shadow-[0_0_14px_rgba(34,211,238,0.35)]"
-                : "border-slate-700 bg-slate-900/60 text-slate-400 hover:border-slate-500 hover:text-slate-200"
-            }`}
-          >
-            <span className="text-base">{p.avatar}</span>
-            {p.name}
-            {p.streak > 0 && (
-              <span className="text-xs text-orange-400">
-                🔥{p.streak}
-              </span>
-            )}
-            {done && <span className="text-xs text-lime-400">✓</span>}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
 // ── Multiplier banner ─────────────────────────────────────────────────────────
 
 function MultiplierBanner({ label, tier }: { label: string | null; tier: string }) {
@@ -220,12 +185,14 @@ function QuestCard({
   player,
   multiplier,
   blastTrigger,
+  disabled,
   onComplete,
 }: {
   questKey: QuestKey;
   player: Player;
   multiplier: number;
   blastTrigger: number;
+  disabled: boolean;
   onComplete: (key: QuestKey) => void;
 }) {
   const meta = QUEST_TITLES[questKey];
@@ -270,10 +237,10 @@ function QuestCard({
         </p>
         <button
           type="button"
-          disabled={done}
+          disabled={done || disabled}
           onClick={() => onComplete(questKey)}
           className={`rounded-md px-3 py-1.5 text-xs font-bold uppercase tracking-wide transition ${
-            done
+            done || disabled
               ? "cursor-default bg-slate-800 text-slate-500"
               : "bg-cyan-500 text-slate-950 hover:bg-cyan-400 active:scale-95"
           }`}
@@ -486,9 +453,11 @@ function LogMemorizationModal({
 
 function VaultPanel({
   player,
+  disabled,
   onCashOut,
 }: {
   player: Player;
+  disabled: boolean;
   onCashOut: () => void;
 }) {
   const cashEquiv = coinsToCash(player.vaultCoins, player.currency);
@@ -532,10 +501,10 @@ function VaultPanel({
 
       <button
         type="button"
-        disabled={!canCashOut}
+        disabled={!canCashOut || disabled}
         onClick={onCashOut}
         className={`mt-4 w-full rounded-md py-2 text-sm font-black uppercase tracking-wide transition ${
-          canCashOut
+          canCashOut && !disabled
             ? "bg-amber-400 text-slate-950 hover:bg-amber-300 active:scale-[0.98]"
             : "cursor-not-allowed bg-slate-800 text-slate-500"
         }`}
@@ -607,6 +576,32 @@ function CashOutModal({
   );
 }
 
+// ── Unlock celebration modal ───────────────────────────────────────────────────
+
+function UnlockModal({ item, onClose }: { item: GearItem; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm">
+      <div className="animate-hifz-scale-in animate-hifz-glow w-full max-w-sm rounded-2xl border-2 border-fuchsia-400 bg-slate-900 p-6 text-center text-fuchsia-300 shadow-[0_0_40px_rgba(232,121,249,0.4)]">
+        <p className="text-5xl">{item.emoji}</p>
+        <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.3em] text-fuchsia-400/80">
+          New Gear Unlocked
+        </p>
+        <h2 className="mt-1 text-xl font-black uppercase tracking-wide text-slate-50">
+          {item.name}
+        </h2>
+        <p className="mt-1 text-sm text-slate-400">{item.description}</p>
+        <button
+          type="button"
+          onClick={onClose}
+          className="mt-5 w-full rounded-md bg-fuchsia-500 py-2 text-sm font-black uppercase tracking-wide text-slate-950 hover:bg-fuchsia-400"
+        >
+          Equip
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── Settings modal ────────────────────────────────────────────────────────────
 
 function SettingsModal({
@@ -618,7 +613,7 @@ function SettingsModal({
   onSave: (updates: Partial<Player>) => void;
   onClose: () => void;
 }) {
-  const [avatar, setAvatar] = useState(player.avatar);
+  const [characterColor, setCharacterColor] = useState(player.characterColor);
   const [currency, setCurrency] = useState<Currency>(player.currency);
   const [difficulty, setDifficulty] = useState<Difficulty>(player.difficulty);
   const [focus, setFocus] = useState(player.focus);
@@ -641,22 +636,21 @@ function SettingsModal({
 
         <div className="mt-4">
           <p className="mb-2 text-xs font-bold uppercase tracking-widest text-slate-400">
-            Role Avatar
+            Character Color
           </p>
           <div className="flex flex-wrap gap-2">
-            {AVATAR_CHOICES.map((a) => (
+            {CHARACTER_COLORS.map((c) => (
               <button
-                key={a}
+                key={c}
                 type="button"
-                onClick={() => setAvatar(a)}
-                className={`flex h-10 w-10 items-center justify-center rounded-lg border text-lg transition ${
-                  avatar === a
-                    ? "border-cyan-400 bg-cyan-400/10"
-                    : "border-slate-700 hover:border-slate-500"
+                onClick={() => setCharacterColor(c)}
+                style={{ background: c }}
+                className={`h-9 w-9 rounded-lg border-2 transition ${
+                  characterColor === c
+                    ? "border-white scale-110"
+                    : "border-transparent hover:scale-105"
                 }`}
-              >
-                {a}
-              </button>
+              />
             ))}
           </div>
         </div>
@@ -790,7 +784,7 @@ function SettingsModal({
             type="button"
             onClick={() =>
               onSave({
-                avatar,
+                characterColor,
                 currency,
                 difficulty,
                 focus,
@@ -828,7 +822,7 @@ function Leaderboard({ players }: { players: Player[] }) {
           >
             <div className="flex items-center gap-2">
               <span className="text-base">{medals[i] ?? "🎖️"}</span>
-              <span className="text-base">{p.avatar}</span>
+              <Character player={p} scale={0.4} online={isOnline(p)} />
               <div>
                 <p className="text-sm font-semibold text-slate-100">{p.name}</p>
                 <p className="text-[10px] uppercase tracking-wide text-slate-500">
@@ -849,40 +843,62 @@ function Leaderboard({ players }: { players: Player[] }) {
   );
 }
 
-// ── Family power bar ───────────────────────────────────────────────────────
+// ── Family base ──────────────────────────────────────────────────────────────
 
-function FamilyPowerBar({ players }: { players: Player[] }) {
+function FamilyBase({ players, activeId }: { players: Player[]; activeId: string }) {
   const totalPower = players.reduce((sum, p) => sum + p.baseDefenseLevel, 0);
   const step = 20;
   const familyLevel = Math.floor(totalPower / step) + 1;
   const progress = ((totalPower % step) / step) * 100;
   const allSynced = players.length > 0 && players.every((p) => allTasksDone(p.tasks));
+  const onlineCount = players.filter(isOnline).length;
+
+  const tierBg =
+    familyLevel >= 4
+      ? "from-slate-900 via-fuchsia-950/40 to-slate-950"
+      : familyLevel >= 3
+        ? "from-slate-900 via-lime-950/30 to-slate-950"
+        : familyLevel >= 2
+          ? "from-slate-900 via-cyan-950/30 to-slate-950"
+          : "from-slate-900 to-slate-950";
 
   return (
     <div
-      className={`rounded-xl border p-4 ${
-        allSynced
-          ? "animate-hifz-glow border-lime-400 bg-lime-400/5 text-lime-300"
-          : "border-slate-700 bg-slate-900/70"
+      className={`rounded-xl border bg-gradient-to-b p-4 ${tierBg} ${
+        allSynced ? "animate-hifz-glow border-lime-400 text-lime-300" : "border-slate-700"
       }`}
     >
-      <h3 className="text-xs font-black uppercase tracking-widest text-slate-300">
-        🏙️ Total Family City Power
-      </h3>
-      <p className="mt-1 font-mono text-xl font-black text-slate-100">
-        Level {familyLevel}{" "}
-        <span className="text-sm font-normal text-slate-400">
-          ({totalPower} total power)
+      <div className="flex items-center justify-between">
+        <h3 className="text-xs font-black uppercase tracking-widest text-slate-300">
+          🏙️ Family Base — Level {familyLevel}
+        </h3>
+        <span className="text-[10px] text-slate-500">
+          {onlineCount > 0 ? `● ${onlineCount} online now` : `${totalPower} total power`}
         </span>
-      </p>
+      </div>
+
       <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-slate-800">
         <div
           className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-lime-400 to-fuchsia-400 transition-all"
           style={{ width: `${progress}%` }}
         />
       </div>
+
+      <div className="mt-4 flex flex-wrap items-end justify-around gap-3 rounded-lg border border-slate-800 bg-slate-950/40 px-2 py-4">
+        {players.map((p) => (
+          <Character
+            key={p.id}
+            player={p}
+            scale={0.85}
+            showName
+            ring={p.id === activeId}
+            online={isOnline(p)}
+          />
+        ))}
+      </div>
+
       {allSynced && (
-        <p className="mt-2 text-xs font-bold uppercase tracking-wide text-lime-300">
+        <p className="mt-3 text-center text-xs font-bold uppercase tracking-wide text-lime-300">
           🛰️ Full Squad Sync — every cousin deployed today!
         </p>
       )}
@@ -892,54 +908,56 @@ function FamilyPowerBar({ players }: { players: Player[] }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
+type BootStatus = "checking" | "locked" | "unlocked" | "error";
+
 export function HifzDashboardClient() {
-  const [players, setPlayers] = useState<Player[]>(() => buildDefaultPlayers());
-  const [activeId, setActiveId] = useState<string>("zayn");
-  const [loaded, setLoaded] = useState(false);
-  // Starts null so the server-rendered markup and the pre-hydration client
-  // render match exactly — the real clock only kicks in after mount.
+  const [status, setStatus] = useState<BootStatus>("checking");
+  const [bootError, setBootError] = useState<string | null>(null);
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [meChecked, setMeChecked] = useState(false);
   const [now, setNow] = useState<Date | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [logModalOpen, setLogModalOpen] = useState(false);
   const [voucher, setVoucher] = useState<CashOutRecord | null>(null);
+  const [unlockedItem, setUnlockedItem] = useState<GearItem | null>(null);
   const [blastKeys, setBlastKeys] = useState<Record<QuestKey, number>>({
     shields: 0,
     recon: 0,
     perimeter: 0,
   });
   const [toast, setToast] = useState<{ id: number; text: string } | null>(null);
+  const [errorToast, setErrorToast] = useState<{ id: number; text: string } | null>(null);
+  const [pending, setPending] = useState(false);
 
-  // Load persisted state on mount.
-  useEffect(() => {
+  const bootstrap = useCallback(async () => {
+    setStatus("checking");
+    setBootError(null);
     try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as { players?: Player[]; activeId?: string };
-        if (Array.isArray(parsed.players) && parsed.players.length > 0) {
-          const today = localDateString(new Date());
-          setPlayers(parsed.players.map((p) => rolloverPlayer(p, today)));
-          if (parsed.activeId) setActiveId(parsed.activeId);
-          setLoaded(true);
-          return;
-        }
+      const { players: fetched } = await hifzApi.state();
+      setPlayers(fetched);
+      setStatus("unlocked");
+      try {
+        const { player } = await hifzApi.me();
+        if (player) setActiveId(player.id);
+      } finally {
+        setMeChecked(true);
       }
-    } catch {
-      // corrupt storage — fall through to defaults
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        setStatus("locked");
+      } else {
+        setBootError(
+          err instanceof Error ? err.message : "Couldn't reach the command center"
+        );
+        setStatus("error");
+      }
     }
-    const today = localDateString(new Date());
-    setPlayers((prev) => prev.map((p) => rolloverPlayer(p, today)));
-    setLoaded(true);
   }, []);
 
-  // Persist on change (after initial load completes).
   useEffect(() => {
-    if (!loaded) return;
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ players, activeId }));
-    } catch {
-      // storage full/unavailable — ignore
-    }
-  }, [players, activeId, loaded]);
+    bootstrap();
+  }, [bootstrap]);
 
   // Live clock tick, drives the Ramadan countdown & weekend detection.
   useEffect(() => {
@@ -948,72 +966,107 @@ export function HifzDashboardClient() {
     return () => clearInterval(id);
   }, []);
 
+  // Poll the shared family state so every cousin's device stays in sync.
+  useEffect(() => {
+    if (status !== "unlocked") return;
+    const id = setInterval(() => {
+      hifzApi
+        .state()
+        .then(({ players: fetched }) => setPlayers(fetched))
+        .catch(() => {
+          /* transient network hiccup — next poll will retry */
+        });
+    }, 15_000);
+    return () => clearInterval(id);
+  }, [status]);
+
   const todayStr = useMemo(() => (now ? localDateString(now) : ""), [now]);
 
-  // Roll daily quests over whenever the calendar day changes (skip until
-  // the live clock has actually mounted and produced a real date).
-  useEffect(() => {
-    if (!todayStr) return;
-    setPlayers((prev) => {
-      const rolled = prev.map((p) => rolloverPlayer(p, todayStr));
-      return rolled.some((p, i) => p !== prev[i]) ? rolled : prev;
-    });
-  }, [todayStr]);
-
-  // Auto-dismiss reward toast.
+  // Auto-dismiss toasts.
   useEffect(() => {
     if (!toast) return;
     const id = setTimeout(() => setToast(null), 2300);
     return () => clearTimeout(id);
   }, [toast]);
+  useEffect(() => {
+    if (!errorToast) return;
+    const id = setTimeout(() => setErrorToast(null), 3500);
+    return () => clearTimeout(id);
+  }, [errorToast]);
 
-  const activePlayer = players.find((p) => p.id === activeId) ?? players[0];
-  const multiplierState = getMultiplier(activePlayer, now ?? undefined);
+  const activePlayer = players.find((p) => p.id === activeId) ?? null;
+  const multiplierState = activePlayer
+    ? getMultiplier(activePlayer, now ?? undefined)
+    : { multiplier: 1, label: null, tier: "none" as const };
 
-  function handleCompleteQuest(questKey: QuestKey, extra?: Partial<Player>) {
+  async function applyPatch(fields: Record<string, unknown>) {
+    const { player } = await hifzApi.patchPlayer(fields);
+    setPlayers((prev) => prev.map((p) => (p.id === player.id ? player : p)));
+    return player;
+  }
+
+  async function handleCompleteQuest(questKey: QuestKey, extra: Partial<Player> = {}) {
     const player = activePlayer;
-    if (!player || player.tasks[questKey]) return;
+    if (!player || player.tasks[questKey] || pending) return;
+    setPending(true);
+    try {
+      const { multiplier } = getMultiplier(player, now ?? undefined);
+      const reward = taskReward(player.difficulty, multiplier);
+      const nextTasks = { ...player.tasks, [questKey]: true };
+      const justCompletedAll = allTasksDone(nextTasks);
+      const bonusCoins = justCompletedAll
+        ? Math.round(DAILY_COMPLETE_BONUS_COINS * multiplier)
+        : 0;
+      const bonusGems = justCompletedAll
+        ? Math.round(DAILY_COMPLETE_BONUS_GEMS * multiplier)
+        : 0;
+      const coinsGained = reward.coins + bonusCoins;
+      const gemsGained = reward.gems + bonusGems;
+      const nextStreak = justCompletedAll ? player.streak + 1 : player.streak;
 
-    const { multiplier } = getMultiplier(player, now ?? undefined);
-    const reward = taskReward(player.difficulty, multiplier);
-    const nextTasks = { ...player.tasks, [questKey]: true };
-    const justCompletedAll = allTasksDone(nextTasks);
-    const bonusCoins = justCompletedAll
-      ? Math.round(DAILY_COMPLETE_BONUS_COINS * multiplier)
-      : 0;
-    const bonusGems = justCompletedAll
-      ? Math.round(DAILY_COMPLETE_BONUS_GEMS * multiplier)
-      : 0;
-    const coinsGained = reward.coins + bonusCoins;
-    const gemsGained = reward.gems + bonusGems;
-    const nextStreak = justCompletedAll ? player.streak + 1 : player.streak;
+      const prospective: Player = {
+        ...player,
+        ...extra,
+        tasks: nextTasks,
+        vaultCoins: player.vaultCoins + coinsGained,
+        gems: player.gems + gemsGained,
+        totalCoinsEarned: player.totalCoinsEarned + coinsGained,
+        streak: nextStreak,
+        bestStreak: Math.max(player.bestStreak, nextStreak),
+        baseDefenseLevel: justCompletedAll
+          ? player.baseDefenseLevel + 1
+          : player.baseDefenseLevel,
+      };
+      const { unlocks, newlyUnlocked } = computeUnlockUpdate(prospective);
 
-    setPlayers((prev) =>
-      prev.map((p) =>
-        p.id !== player.id
-          ? p
-          : {
-              ...p,
-              ...extra,
-              tasks: nextTasks,
-              vaultCoins: p.vaultCoins + coinsGained,
-              gems: p.gems + gemsGained,
-              totalCoinsEarned: p.totalCoinsEarned + coinsGained,
-              streak: nextStreak,
-              bestStreak: Math.max(p.bestStreak, nextStreak),
-              baseDefenseLevel: justCompletedAll
-                ? p.baseDefenseLevel + 1
-                : p.baseDefenseLevel,
-            }
-      )
-    );
-    setBlastKeys((prev) => ({ ...prev, [questKey]: prev[questKey] + 1 }));
-    setToast({
-      id: Date.now(),
-      text: `+${coinsGained} Coins   +${gemsGained} Gems${
-        justCompletedAll ? "   •   DAILY OPS COMPLETE" : ""
-      }`,
-    });
+      await applyPatch({
+        ...extra,
+        tasks: prospective.tasks,
+        vaultCoins: prospective.vaultCoins,
+        gems: prospective.gems,
+        totalCoinsEarned: prospective.totalCoinsEarned,
+        streak: prospective.streak,
+        bestStreak: prospective.bestStreak,
+        baseDefenseLevel: prospective.baseDefenseLevel,
+        unlocks,
+      });
+
+      setBlastKeys((prev) => ({ ...prev, [questKey]: prev[questKey] + 1 }));
+      setToast({
+        id: Date.now(),
+        text: `+${coinsGained} Coins   +${gemsGained} Gems${
+          justCompletedAll ? "   •   DAILY OPS COMPLETE" : ""
+        }`,
+      });
+      if (newlyUnlocked.length > 0) setUnlockedItem(newlyUnlocked[0]);
+    } catch (err) {
+      setErrorToast({
+        id: Date.now(),
+        text: err instanceof Error ? err.message : "Couldn't save — try again",
+      });
+    } finally {
+      setPending(false);
+    }
   }
 
   function handleDeployQuest(questKey: QuestKey) {
@@ -1041,54 +1094,135 @@ export function HifzDashboardClient() {
       toAyah,
       ayahCount: rangeAyahCount(fromSurah, fromAyah, toSurah, toAyah),
     };
+    setLogModalOpen(false);
     handleCompleteQuest("recon", {
       currentSurah: toSurah,
       currentAyah: toAyah,
       memorizationLog: [...player.memorizationLog, entry],
     });
-    setLogModalOpen(false);
   }
 
-  function handleCashOut() {
+  async function handleCashOut() {
     const player = activePlayer;
-    if (!player || player.vaultCoins < CASH_OUT_THRESHOLD) return;
-    const coins = player.vaultCoins;
-    const amount = coinsToCash(coins, player.currency);
-    const record: CashOutRecord = {
-      id: `${player.id}-${Date.now()}`,
-      date: todayStr || localDateString(new Date()),
-      coins,
-      amount,
-      currency: player.currency,
-    };
-    setPlayers((prev) =>
-      prev.map((p) =>
-        p.id !== player.id
-          ? p
-          : {
-              ...p,
-              vaultCoins: 0,
-              cashOutHistory: [record, ...p.cashOutHistory].slice(0, 10),
-            }
-      )
-    );
-    setVoucher(record);
+    if (!player || player.vaultCoins < CASH_OUT_THRESHOLD || pending) return;
+    setPending(true);
+    try {
+      const coins = player.vaultCoins;
+      const amount = coinsToCash(coins, player.currency);
+      const record: CashOutRecord = {
+        id: `${player.id}-${Date.now()}`,
+        date: todayStr || localDateString(new Date()),
+        coins,
+        amount,
+        currency: player.currency,
+      };
+      const prospective: Player = {
+        ...player,
+        vaultCoins: 0,
+        cashOutHistory: [record, ...player.cashOutHistory].slice(0, 10),
+      };
+      const { unlocks, newlyUnlocked } = computeUnlockUpdate(prospective);
+      await applyPatch({
+        vaultCoins: 0,
+        cashOutHistory: prospective.cashOutHistory,
+        unlocks,
+      });
+      setVoucher(record);
+      if (newlyUnlocked.length > 0) setUnlockedItem(newlyUnlocked[0]);
+    } catch (err) {
+      setErrorToast({
+        id: Date.now(),
+        text: err instanceof Error ? err.message : "Couldn't save — try again",
+      });
+    } finally {
+      setPending(false);
+    }
   }
 
-  function handleToggleVacation(id: string) {
-    setPlayers((prev) =>
-      prev.map((p) => (p.id !== id ? p : { ...p, vacationMode: !p.vacationMode }))
+  async function handleToggleVacation() {
+    const player = activePlayer;
+    if (!player || pending) return;
+    setPending(true);
+    try {
+      await applyPatch({ vacationMode: !player.vacationMode });
+    } catch (err) {
+      setErrorToast({
+        id: Date.now(),
+        text: err instanceof Error ? err.message : "Couldn't save — try again",
+      });
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function handleSaveSettings(updates: Partial<Player>) {
+    try {
+      await applyPatch(updates);
+      setSettingsOpen(false);
+    } catch (err) {
+      setErrorToast({
+        id: Date.now(),
+        text: err instanceof Error ? err.message : "Couldn't save — try again",
+      });
+    }
+  }
+
+  async function handleSwitchCharacter() {
+    await hifzApi.playerLogout().catch(() => {});
+    setActiveId(null);
+  }
+
+  async function handleFamilyLogout() {
+    await hifzApi.familyLogout().catch(() => {});
+    setStatus("locked");
+    setActiveId(null);
+    setPlayers([]);
+    setMeChecked(false);
+  }
+
+  if (status === "checking") {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-sm text-slate-400">
+        Booting command center…
+      </div>
     );
   }
 
-  function handleSaveSettings(updates: Partial<Player>) {
-    setPlayers((prev) =>
-      prev.map((p) => (p.id !== activeId ? p : { ...p, ...updates }))
-    );
-    setSettingsOpen(false);
+  if (status === "locked") {
+    return <FamilyGate onUnlock={bootstrap} />;
   }
 
-  if (!activePlayer) return null;
+  if (status === "error") {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-slate-950 px-4 text-center text-slate-300">
+        <p className="text-3xl">📡</p>
+        <p className="text-sm font-semibold">Couldn&rsquo;t reach the command center</p>
+        <p className="max-w-xs text-xs text-slate-500">{bootError}</p>
+        <button
+          type="button"
+          onClick={bootstrap}
+          className="mt-2 rounded-md border border-slate-700 px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (!meChecked) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-sm text-slate-400">
+        Checking for an active session…
+      </div>
+    );
+  }
+
+  if (!activeId || !activePlayer) {
+    return <CharacterSelect players={players} onSignedIn={(p) => {
+      setPlayers((prev) => prev.map((x) => (x.id === p.id ? p : x)));
+      setActiveId(p.id);
+    }} />;
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 bg-[radial-gradient(ellipse_at_top,_rgba(34,211,238,0.08),_transparent_60%)] pb-16 text-slate-200">
@@ -1112,11 +1246,29 @@ export function HifzDashboardClient() {
               Hifz Command Center
             </h1>
           </div>
-          <RamadanCountdown now={now} />
+          <div className="flex items-center gap-3">
+            <RamadanCountdown now={now} />
+            <div className="flex flex-col gap-1.5">
+              <button
+                type="button"
+                onClick={handleSwitchCharacter}
+                className="rounded-md border border-slate-700 px-2.5 py-1 text-[10px] font-semibold text-slate-400 hover:bg-slate-800"
+              >
+                Switch Character
+              </button>
+              <button
+                type="button"
+                onClick={handleFamilyLogout}
+                className="rounded-md border border-slate-700 px-2.5 py-1 text-[10px] font-semibold text-slate-400 hover:bg-slate-800"
+              >
+                Log Out
+              </button>
+            </div>
+          </div>
         </div>
 
         <div className="mt-6">
-          <PlayerSwitcher players={players} activeId={activeId} onSelect={setActiveId} />
+          <FamilyBase players={players} activeId={activeId} />
         </div>
 
         {/* ── Main grid ──────────────────────────────────────────────── */}
@@ -1134,9 +1286,7 @@ export function HifzDashboardClient() {
             >
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-14 w-14 items-center justify-center rounded-xl border border-slate-700 bg-slate-950 text-3xl">
-                    {activePlayer.avatar}
-                  </span>
+                  <Character player={activePlayer} scale={1.3} ring />
                   <div>
                     <h2 className="text-lg font-black uppercase tracking-wide text-slate-50">
                       {activePlayer.name}
@@ -1186,7 +1336,7 @@ export function HifzDashboardClient() {
                   </span>
                   <ToggleSwitch
                     checked={activePlayer.vacationMode}
-                    onChange={() => handleToggleVacation(activePlayer.id)}
+                    onChange={handleToggleVacation}
                   />
                 </div>
               </div>
@@ -1205,17 +1355,17 @@ export function HifzDashboardClient() {
                   player={activePlayer}
                   multiplier={multiplierState.multiplier}
                   blastTrigger={blastKeys[key]}
+                  disabled={pending}
                   onComplete={handleDeployQuest}
                 />
               ))}
             </div>
 
-            <VaultPanel player={activePlayer} onCashOut={handleCashOut} />
+            <VaultPanel player={activePlayer} disabled={pending} onCashOut={handleCashOut} />
           </div>
 
           {/* Sidebar */}
           <div className="space-y-5">
-            <FamilyPowerBar players={players} />
             <Leaderboard players={players} />
           </div>
         </div>
@@ -1240,12 +1390,25 @@ export function HifzDashboardClient() {
         />
       )}
 
+      {unlockedItem && (
+        <UnlockModal item={unlockedItem} onClose={() => setUnlockedItem(null)} />
+      )}
+
       {toast && (
         <div
           key={toast.id}
           className="animate-hifz-toast fixed bottom-8 left-1/2 z-50 -translate-x-1/2 rounded-full border border-lime-400 bg-slate-900 px-5 py-2.5 text-sm font-bold text-lime-300 shadow-[0_0_20px_rgba(163,230,53,0.4)]"
         >
           {toast.text}
+        </div>
+      )}
+
+      {errorToast && (
+        <div
+          key={errorToast.id}
+          className="animate-hifz-toast fixed bottom-8 left-1/2 z-50 -translate-x-1/2 rounded-full border border-red-400 bg-slate-900 px-5 py-2.5 text-sm font-bold text-red-300 shadow-[0_0_20px_rgba(248,113,113,0.4)]"
+        >
+          ⚠ {errorToast.text}
         </div>
       )}
     </div>

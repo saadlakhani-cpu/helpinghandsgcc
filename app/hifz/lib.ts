@@ -27,7 +27,7 @@ export type MemorizationEntry = {
 export type Player = {
   id: string;
   name: string;
-  avatar: string;
+  characterColor: string;
   currency: Currency;
   difficulty: Difficulty;
   focus: string;
@@ -45,11 +45,26 @@ export type Player = {
   currentSurah: number;
   currentAyah: number;
   memorizationLog: MemorizationEntry[];
+  unlocks: string[];
+  updatedAt: string;
 };
+
+export function totalAyahsMemorized(player: Pick<Player, "memorizationLog">): number {
+  return player.memorizationLog.reduce((sum, e) => sum + e.ayahCount, 0);
+}
 
 // ── Static config ─────────────────────────────────────────────────────────────
 
-export const AVATAR_CHOICES = ["🛡️", "🚀", "🎯", "🛰️", "⚔️", "🪖", "🔰", "⭐"];
+export const CHARACTER_COLORS = [
+  "#22d3ee", // cyan
+  "#f472b6", // pink
+  "#a3e635", // lime
+  "#fbbf24", // amber
+  "#c084fc", // violet
+  "#fb7185", // rose
+  "#38bdf8", // sky
+  "#34d399", // emerald
+];
 
 export const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -298,10 +313,3 @@ export function rankPlayers(players: Player[]): Player[] {
     return b.totalCoinsEarned - a.totalCoinsEarned;
   });
 }
-
-// ── Storage ───────────────────────────────────────────────────────────────────
-
-// Bumped to v2 when Surah/Ayah memorization tracking was added — old v1
-// saves lack those fields, so we deliberately start fresh rather than risk
-// loading a Player object with missing required properties.
-export const STORAGE_KEY = "hifz-command-center-v2";

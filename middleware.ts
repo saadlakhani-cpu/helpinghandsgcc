@@ -31,9 +31,30 @@ export function middleware(request: NextRequest) {
     }
   }
 
+  // /hifz and its API are gated by a single shared family passcode. The
+  // family-login route itself must stay reachable so the gate can be
+  // unlocked in the first place.
+  if (
+    (pathname.startsWith("/hifz") || pathname.startsWith("/api/hifz")) &&
+    pathname !== "/api/hifz/family-login"
+  ) {
+    const token = request.cookies.get("hifz_family_token")?.value;
+    const secret = process.env.HIFZ_FAMILY_PASSCODE;
+    const unlocked = Boolean(secret) && token === secret;
+
+    if (!unlocked) {
+      if (pathname.startsWith("/api/hifz")) {
+        return NextResponse.json({ error: "Family passcode required" }, { status: 401 });
+      }
+      // The /hifz page itself renders its own lock screen client-side
+      // rather than redirecting, so just let it through unauthenticated —
+      // it will call /api/hifz/family-login to unlock.
+    }
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/manual-import/:path*"],
+  matcher: ["/admin/:path*", "/manual-import/:path*", "/hifz/:path*", "/api/hifz/:path*"],
 };
