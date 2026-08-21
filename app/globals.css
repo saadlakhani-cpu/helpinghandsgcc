@@ -5,3 +5,68 @@
 body {
   @apply bg-surface text-primary antialiased;
 }
+
+/* ── Hifz Command Center effects ─────────────────────────────────────────── */
+
+@keyframes hifz-blast {
+  0% {
+    transform: translate(0, 0) scale(0.6);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--tx), var(--ty)) scale(1.5);
+    opacity: 0;
+  }
+}
+.animate-hifz-blast {
+  animation: hifz-blast 0.65s ease-out forwards;
+}
+
+@keyframes hifz-pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 8px currentColor;
+  }
+  50% {
+    box-shadow: 0 0 24px currentColor;
+  }
+}
+.animate-hifz-glow {
+  animation: hifz-pulse-glow 2.2s ease-in-out infinite;
+}
+
+@keyframes hifz-toast-in {
+  0% {
+    transform: translate(-50%, 12px);
+    opacity: 0;
+  }
+  10% {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+  85% {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -8px);
+    opacity: 0;
+  }
+}
+.animate-hifz-toast {
+  animation: hifz-toast-in 2.4s ease-in-out forwards;
+}
+
+@keyframes hifz-scale-in {
+  0% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.animate-hifz-scale-in {
+  animation: hifz-scale-in 0.25s ease-out forwards;
+}
