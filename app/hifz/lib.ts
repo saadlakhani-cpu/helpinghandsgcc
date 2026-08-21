@@ -14,6 +14,16 @@ export type CashOutRecord = {
   currency: Currency;
 };
 
+export type MemorizationEntry = {
+  id: string;
+  date: string;
+  fromSurah: number;
+  fromAyah: number;
+  toSurah: number;
+  toAyah: number;
+  ayahCount: number;
+};
+
 export type Player = {
   id: string;
   name: string;
@@ -32,6 +42,9 @@ export type Player = {
   tasks: DailyTasks;
   tasksDate: string;
   cashOutHistory: CashOutRecord[];
+  currentSurah: number;
+  currentAyah: number;
+  memorizationLog: MemorizationEntry[];
 };
 
 // ── Static config ─────────────────────────────────────────────────────────────
@@ -64,6 +77,9 @@ export const DIFFICULTY_META: Record<
     glow: string;
     baseCoins: number;
     baseGems: number;
+    // Rough default span (in ayahs) suggested when logging a new-memorization
+    // session at this difficulty — a starting point the player can edit.
+    suggestedAyahs: number;
     quests: Record<QuestKey, string>;
   }
 > = {
@@ -76,6 +92,7 @@ export const DIFFICULTY_META: Record<
     glow: "shadow-lime-400/40",
     baseCoins: 40,
     baseGems: 4,
+    suggestedAyahs: 3,
     quests: {
       shields: "Revise yesterday's Sabaq (1 page)",
       recon: "Memorize 2-3 new lines",
@@ -91,6 +108,7 @@ export const DIFFICULTY_META: Record<
     glow: "shadow-cyan-400/40",
     baseCoins: 80,
     baseGems: 8,
+    suggestedAyahs: 8,
     quests: {
       shields: "Revise last 3 pages of Sabqi",
       recon: "Memorize 0.5 new page",
@@ -106,6 +124,7 @@ export const DIFFICULTY_META: Record<
     glow: "shadow-fuchsia-400/40",
     baseCoins: 150,
     baseGems: 15,
+    suggestedAyahs: 15,
     quests: {
       shields: "Revise last 5 pages of Sabqi",
       recon: "Memorize 1+ new page",
@@ -282,4 +301,7 @@ export function rankPlayers(players: Player[]): Player[] {
 
 // ── Storage ───────────────────────────────────────────────────────────────────
 
-export const STORAGE_KEY = "hifz-command-center-v1";
+// Bumped to v2 when Surah/Ayah memorization tracking was added — old v1
+// saves lack those fields, so we deliberately start fresh rather than risk
+// loading a Player object with missing required properties.
+export const STORAGE_KEY = "hifz-command-center-v2";

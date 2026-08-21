@@ -23,10 +23,20 @@ import {
   type CashOutRecord,
   type Currency,
   type Difficulty,
+  type MemorizationEntry,
   type Player,
   type QuestKey,
 } from "./lib";
 import { buildDefaultPlayers } from "./seed";
+import {
+  SURAHS,
+  TOTAL_AYAHS,
+  advancePosition,
+  formatPosition,
+  juzForPosition,
+  rangeAyahCount,
+  surahByNumber,
+} from "./quran";
 
 // ── Small building blocks ────────────────────────────────────────────────────
 
@@ -275,6 +285,203 @@ function QuestCard({
   );
 }
 
+// ── Memorization progress ───────────────────────────────────────────────────
+
+function MemorizationProgress({ player }: { player: Player }) {
+  const totalMemorized = player.memorizationLog.reduce(
+    (sum, e) => sum + e.ayahCount,
+    0
+  );
+  const percent = Math.min(100, (totalMemorized / TOTAL_AYAHS) * 100);
+  const juz = juzForPosition(player.currentSurah, player.currentAyah);
+  const recent = [...player.memorizationLog].reverse().slice(0, 4);
+
+  return (
+    <div className="rounded-xl border border-lime-400/30 bg-slate-900/70 p-4">
+      <h3 className="text-xs font-black uppercase tracking-widest text-lime-300">
+        📖 Memorization Progress
+      </h3>
+
+      <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="font-mono text-2xl font-black text-lime-300">
+            {totalMemorized.toLocaleString()}
+            <span className="ml-1 text-sm text-lime-400/80">/ {TOTAL_AYAHS} Ayahs</span>
+          </p>
+          <p className="text-sm text-slate-400">
+            Currently up to{" "}
+            <span className="font-semibold text-slate-200">
+              {formatPosition(player.currentSurah, player.currentAyah)}
+            </span>
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-lg font-black text-cyan-300">{percent.toFixed(1)}%</p>
+          <p className="text-[10px] uppercase tracking-wide text-slate-500">
+            Juz {juz.number} · &ldquo;{juz.name}&rdquo;
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-800">
+        <div
+          className="h-full rounded-full bg-gradient-to-r from-lime-500 to-cyan-400 transition-all"
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+
+      {recent.length > 0 && (
+        <ul className="mt-3 space-y-1.5">
+          {recent.map((entry) => (
+            <li
+              key={entry.id}
+              className="flex items-center justify-between rounded-md border border-slate-800 bg-slate-950/60 px-2.5 py-1.5 text-xs"
+            >
+              <span className="text-slate-400">{entry.date}</span>
+              <span className="text-slate-200">
+                {formatPosition(entry.fromSurah, entry.fromAyah)} →{" "}
+                {formatPosition(entry.toSurah, entry.toAyah)}
+              </span>
+              <span className="font-mono text-lime-400">+{entry.ayahCount}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+// ── Log memorization modal ────────────────────────────────────────────────────
+
+function SurahSelect({
+  id,
+  value,
+  onChange,
+}: {
+  id: string;
+  value: number;
+  onChange: (n: number) => void;
+}) {
+  return (
+    <select
+      id={id}
+      value={value}
+      onChange={(e) => onChange(Number(e.target.value))}
+      className="w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-2 text-sm text-slate-100 focus:border-cyan-400 focus:outline-none"
+    >
+      {SURAHS.map((s) => (
+        <option key={s.number} value={s.number}>
+          {s.number}. {s.name} — {s.ayahCount} ayahs
+        </option>
+      ))}
+    </select>
+  );
+}
+
+function LogMemorizationModal({
+  player,
+  reward,
+  onConfirm,
+  onClose,
+}: {
+  player: Player;
+  reward: { coins: number; gems: number };
+  onConfirm: (
+    fromSurah: number,
+    fromAyah: number,
+    toSurah: number,
+    toAyah: number
+  ) => void;
+  onClose: () => void;
+}) {
+  const suggested = advancePosition(
+    player.currentSurah,
+    player.currentAyah,
+    DIFFICULTY_META[player.difficulty].suggestedAyahs
+  );
+  const [fromSurah, setFromSurah] = useState(player.currentSurah);
+  const [fromAyah, setFromAyah] = useState(player.currentAyah);
+  const [toSurah, setToSurah] = useState(suggested.surah);
+  const [toAyah, setToAyah] = useState(suggested.ayah);
+
+  const span = rangeAyahCount(fromSurah, fromAyah, toSurah, toAyah);
+  const fromMax = surahByNumber(fromSurah).ayahCount;
+  const toMax = surahByNumber(toSurah).ayahCount;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm">
+      <div className="animate-hifz-scale-in w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6">
+        <h2 className="text-lg font-black uppercase tracking-wide text-cyan-300">
+          🚀 Launch Recon Strike
+        </h2>
+        <p className="mt-1 text-sm text-slate-400">
+          Log exactly what {player.name} memorized today.
+        </p>
+
+        <div className="mt-4">
+          <p className="mb-1.5 text-xs font-bold uppercase tracking-widest text-slate-400">
+            From
+          </p>
+          <div className="flex gap-2">
+            <div className="flex-[3]">
+              <SurahSelect id="from-surah" value={fromSurah} onChange={setFromSurah} />
+            </div>
+            <input
+              type="number"
+              min={1}
+              max={fromMax}
+              value={fromAyah}
+              onChange={(e) => setFromAyah(Number(e.target.value))}
+              className="w-20 rounded-md border border-slate-700 bg-slate-950 px-2 py-2 text-center text-sm text-slate-100 focus:border-cyan-400 focus:outline-none"
+            />
+          </div>
+        </div>
+
+        <div className="mt-3">
+          <p className="mb-1.5 text-xs font-bold uppercase tracking-widest text-slate-400">
+            To
+          </p>
+          <div className="flex gap-2">
+            <div className="flex-[3]">
+              <SurahSelect id="to-surah" value={toSurah} onChange={setToSurah} />
+            </div>
+            <input
+              type="number"
+              min={1}
+              max={toMax}
+              value={toAyah}
+              onChange={(e) => setToAyah(Number(e.target.value))}
+              className="w-20 rounded-md border border-slate-700 bg-slate-950 px-2 py-2 text-center text-sm text-slate-100 focus:border-cyan-400 focus:outline-none"
+            />
+          </div>
+        </div>
+
+        <div className="mt-4 flex items-center justify-between rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm">
+          <span className="text-slate-400">Span logged</span>
+          <span className="font-mono font-bold text-lime-400">{span} ayahs</span>
+        </div>
+
+        <div className="mt-4 flex gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 rounded-md border border-slate-700 py-2 text-sm font-semibold text-slate-300 hover:bg-slate-800"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => onConfirm(fromSurah, fromAyah, toSurah, toAyah)}
+            className="flex-1 rounded-md bg-cyan-500 py-2 text-sm font-black uppercase tracking-wide text-slate-950 hover:bg-cyan-400"
+          >
+            Confirm · +{reward.coins}◎ +{reward.gems}♦
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Vault panel ────────────────────────────────────────────────────────────
 
 function VaultPanel({
@@ -416,6 +623,8 @@ function SettingsModal({
   const [difficulty, setDifficulty] = useState<Difficulty>(player.difficulty);
   const [focus, setFocus] = useState(player.focus);
   const [weekendDays, setWeekendDays] = useState<number[]>(player.weekendDays);
+  const [currentSurah, setCurrentSurah] = useState(player.currentSurah);
+  const [currentAyah, setCurrentAyah] = useState(player.currentAyah);
 
   function toggleDay(day: number) {
     setWeekendDays((prev) =>
@@ -542,6 +751,33 @@ function SettingsModal({
           />
         </div>
 
+        <div className="mt-5">
+          <p className="mb-2 text-xs font-bold uppercase tracking-widest text-slate-400">
+            Current Position (manual correction)
+          </p>
+          <div className="flex gap-2">
+            <div className="flex-[3]">
+              <SurahSelect
+                id="current-surah"
+                value={currentSurah}
+                onChange={setCurrentSurah}
+              />
+            </div>
+            <input
+              type="number"
+              min={1}
+              max={surahByNumber(currentSurah).ayahCount}
+              value={currentAyah}
+              onChange={(e) => setCurrentAyah(Number(e.target.value))}
+              className="w-20 rounded-md border border-slate-700 bg-slate-950 px-2 py-2 text-center text-sm text-slate-100 focus:border-cyan-400 focus:outline-none"
+            />
+          </div>
+          <p className="mt-1 text-[11px] text-slate-500">
+            Only adjust this to fix drift — normal progress is logged via the
+            &ldquo;Launch Recon Strike&rdquo; quest instead.
+          </p>
+        </div>
+
         <div className="mt-6 flex gap-3">
           <button
             type="button"
@@ -553,7 +789,15 @@ function SettingsModal({
           <button
             type="button"
             onClick={() =>
-              onSave({ avatar, currency, difficulty, focus, weekendDays })
+              onSave({
+                avatar,
+                currency,
+                difficulty,
+                focus,
+                weekendDays,
+                currentSurah,
+                currentAyah,
+              })
             }
             className="flex-1 rounded-md bg-cyan-500 py-2 text-sm font-black uppercase tracking-wide text-slate-950 hover:bg-cyan-400"
           >
@@ -656,6 +900,7 @@ export function HifzDashboardClient() {
   // render match exactly — the real clock only kicks in after mount.
   const [now, setNow] = useState<Date | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [logModalOpen, setLogModalOpen] = useState(false);
   const [voucher, setVoucher] = useState<CashOutRecord | null>(null);
   const [blastKeys, setBlastKeys] = useState<Record<QuestKey, number>>({
     shields: 0,
@@ -725,7 +970,7 @@ export function HifzDashboardClient() {
   const activePlayer = players.find((p) => p.id === activeId) ?? players[0];
   const multiplierState = getMultiplier(activePlayer, now ?? undefined);
 
-  function handleCompleteQuest(questKey: QuestKey) {
+  function handleCompleteQuest(questKey: QuestKey, extra?: Partial<Player>) {
     const player = activePlayer;
     if (!player || player.tasks[questKey]) return;
 
@@ -749,6 +994,7 @@ export function HifzDashboardClient() {
           ? p
           : {
               ...p,
+              ...extra,
               tasks: nextTasks,
               vaultCoins: p.vaultCoins + coinsGained,
               gems: p.gems + gemsGained,
@@ -768,6 +1014,39 @@ export function HifzDashboardClient() {
         justCompletedAll ? "   •   DAILY OPS COMPLETE" : ""
       }`,
     });
+  }
+
+  function handleDeployQuest(questKey: QuestKey) {
+    if (questKey === "recon") {
+      setLogModalOpen(true);
+      return;
+    }
+    handleCompleteQuest(questKey);
+  }
+
+  function handleLogMemorization(
+    fromSurah: number,
+    fromAyah: number,
+    toSurah: number,
+    toAyah: number
+  ) {
+    const player = activePlayer;
+    if (!player) return;
+    const entry: MemorizationEntry = {
+      id: `${player.id}-log-${Date.now()}`,
+      date: todayStr || localDateString(new Date()),
+      fromSurah,
+      fromAyah,
+      toSurah,
+      toAyah,
+      ayahCount: rangeAyahCount(fromSurah, fromAyah, toSurah, toAyah),
+    };
+    handleCompleteQuest("recon", {
+      currentSurah: toSurah,
+      currentAyah: toAyah,
+      memorizationLog: [...player.memorizationLog, entry],
+    });
+    setLogModalOpen(false);
   }
 
   function handleCashOut() {
@@ -915,6 +1194,8 @@ export function HifzDashboardClient() {
 
             <MultiplierBanner label={multiplierState.label} tier={multiplierState.tier} />
 
+            <MemorizationProgress player={activePlayer} />
+
             {/* Quests */}
             <div className="grid gap-4 sm:grid-cols-3">
               {(["shields", "recon", "perimeter"] as QuestKey[]).map((key) => (
@@ -924,7 +1205,7 @@ export function HifzDashboardClient() {
                   player={activePlayer}
                   multiplier={multiplierState.multiplier}
                   blastTrigger={blastKeys[key]}
-                  onComplete={handleCompleteQuest}
+                  onComplete={handleDeployQuest}
                 />
               ))}
             </div>
@@ -949,6 +1230,15 @@ export function HifzDashboardClient() {
       )}
 
       {voucher && <CashOutModal record={voucher} onClose={() => setVoucher(null)} />}
+
+      {logModalOpen && (
+        <LogMemorizationModal
+          player={activePlayer}
+          reward={taskReward(activePlayer.difficulty, multiplierState.multiplier)}
+          onConfirm={handleLogMemorization}
+          onClose={() => setLogModalOpen(false)}
+        />
+      )}
 
       {toast && (
         <div
