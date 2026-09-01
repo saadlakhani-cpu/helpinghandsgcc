@@ -46,8 +46,7 @@ export function ProtectedJobLink({
               Sign in required
             </h2>
             <p className="mt-2 text-sm leading-6 text-gray-600">
-              Please sign in with Google to view job details and apply through
-              the portal.
+              Please sign in to view job details and apply through the portal.
             </p>
             <div className="mt-5 flex justify-end gap-2">
               <button

@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
     const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
 
     if (!token) {
-      return NextResponse.json({ error: "Please sign in with Google first." }, { status: 401 });
+      return NextResponse.json({ error: "Please sign in first." }, { status: 401 });
     }
 
     const supabase = createAdminClient();

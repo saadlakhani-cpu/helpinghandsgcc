@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { createBrowserClient } from "@/lib/supabase/client";
 
@@ -49,14 +50,6 @@ export function RecruiterClient() {
     };
   }, []);
 
-  async function signIn() {
-    const supabase = createBrowserClient();
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/recruiters` },
-    });
-  }
-
   function toggleCategory(category: string) {
     setHiringCategories((current) => {
       if (current.includes(category)) {
@@ -78,13 +71,13 @@ export function RecruiterClient() {
       const { data } = await withTimeout(
         supabase.auth.getSession(),
         8000,
-        "Could not confirm your Google sign-in. Please refresh and sign in again."
+        "Could not confirm your sign-in. Please refresh and sign in again."
       );
       const token = data.session?.access_token;
 
       if (!token) {
         setSubmitState("error");
-        setMessage("Please sign in with Google before submitting.");
+        setMessage("Please sign in before submitting.");
         return;
       }
 
@@ -155,16 +148,15 @@ export function RecruiterClient() {
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
         <h2 className="text-xl font-bold text-primary">Recruiter sign-in</h2>
         <p className="mt-2 text-sm leading-6 text-gray-600">
-          Sign in with Google to register your company and submit finance or AI
-          jobs for review.
+          Sign in to register your company and submit finance or AI jobs for
+          review.
         </p>
-        <button
-          type="button"
-          onClick={signIn}
-          className="mt-5 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800"
+        <Link
+          href="/sign-in?returnTo=%2Frecruiters"
+          className="mt-5 inline-block rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800"
         >
-          Continue with Google
-        </button>
+          Sign in to continue
+        </Link>
       </div>
     );
   }

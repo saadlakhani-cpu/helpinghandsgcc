@@ -1,12 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createBrowserClient } from "@/lib/supabase/client";
 
 export function AuthNav() {
   const [email, setEmail] = useState<string | null>(null);
+  const [returnTo, setReturnTo] = useState("/jobs");
 
   useEffect(() => {
+    setReturnTo(`${window.location.pathname}${window.location.search}`);
+
     const supabase = createBrowserClient();
 
     supabase.auth.getUser().then(({ data }) => {
@@ -21,15 +25,6 @@ export function AuthNav() {
       listener.subscription.unsubscribe();
     };
   }, []);
-
-  async function signIn() {
-    const supabase = createBrowserClient();
-    const returnPath = window.location.pathname || "/subscribe";
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}${returnPath}` },
-    });
-  }
 
   async function signOut() {
     const supabase = createBrowserClient();
@@ -51,12 +46,11 @@ export function AuthNav() {
   }
 
   return (
-    <button
-      type="button"
-      onClick={signIn}
+    <Link
+      href={`/sign-in?returnTo=${encodeURIComponent(returnTo)}`}
       className="transition hover:text-primary"
     >
       Sign in
-    </button>
+    </Link>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { createBrowserClient } from "@/lib/supabase/client";
@@ -196,6 +196,7 @@ export function SubscribeClient({ mode = "subscribe" }: SubscribeClientProps) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const signInReturnTo = mode === "profile" ? "/profile" : "/subscribe";
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -224,22 +225,6 @@ export function SubscribeClient({ mode = "subscribe" }: SubscribeClientProps) {
       }
     });
   }, [mode]);
-
-  async function handleGoogleSignIn() {
-    setError(null);
-    try {
-      const supabase = createBrowserClient();
-      const origin = window.location.origin;
-      const returnPath = window.location.pathname || "/subscribe";
-      const { error: signInError } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo: `${origin}${returnPath}` },
-      });
-      if (signInError) throw signInError;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Google sign-in failed");
-    }
-  }
 
   async function handleSignOut() {
     setError(null);
@@ -364,7 +349,7 @@ export function SubscribeClient({ mode = "subscribe" }: SubscribeClientProps) {
           {signedInEmail && (
             <div className="mb-5 flex flex-col gap-3 rounded-lg border border-green-100 bg-green-50 px-4 py-3 text-sm text-green-800 sm:flex-row sm:items-center sm:justify-between">
               <span>
-                Signed in with Google as <strong>{signedInEmail}</strong>
+                Signed in as <strong>{signedInEmail}</strong>
               </span>
               <button
                 type="button"
@@ -389,23 +374,22 @@ export function SubscribeClient({ mode = "subscribe" }: SubscribeClientProps) {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 {!signedInEmail && (
-                  <button
-                    type="button"
-                    onClick={handleGoogleSignIn}
+                  <Link
+                    href={`/sign-in?returnTo=${encodeURIComponent(signInReturnTo)}`}
                     className="group flex flex-col items-center gap-3 rounded-xl border-2 border-dashed border-gray-300 p-6 text-center transition hover:border-primary hover:bg-slate-50 sm:col-span-2"
                   >
                     <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-xl font-bold group-hover:bg-slate-200">
-                      G
+                      ✉
                     </span>
                     <div>
                       <p className="font-semibold text-gray-800">
-                        Continue with Google
+                        Sign in to your account
                       </p>
                       <p className="mt-1 text-xs text-gray-500">
-                        Sign in before creating or updating your profile
+                        Use email and password before creating or updating your profile
                       </p>
                     </div>
-                  </button>
+                  </Link>
                 )}
 
                 <button
@@ -451,13 +435,6 @@ export function SubscribeClient({ mode = "subscribe" }: SubscribeClientProps) {
                   </div>
                 </button>
               </div>
-
-              {!signedInEmail && (
-                <p className="mt-4 rounded-md bg-slate-50 px-3 py-2 text-center text-xs text-gray-500">
-                  You may briefly see our Supabase auth domain during Google
-                  sign-in. This is our secure login provider.
-                </p>
-              )}
 
               <input
                 ref={fileInputRef}
