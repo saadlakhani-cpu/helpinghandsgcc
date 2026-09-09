@@ -10,6 +10,11 @@ import { formatHoursAgo } from "@/lib/utils/date";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+export const metadata = {
+  title: "Helping Hands GCC | Careers, AI Training & Business Solutions",
+  description: "Find GCC Finance and AI jobs, explore practical AI training for individuals and corporate teams, and discuss AI solutions for your business.",
+};
+
 export default async function HomePage() {
   const { financeCount, aiCount, lastUpdated, latestFinance, latestAi } =
     await getHomePageData();
@@ -22,11 +27,12 @@ export default async function HomePage() {
         {/* Hero */}
         <section className="bg-primary px-4 py-16 text-white sm:px-6 sm:py-20">
           <div className="mx-auto max-w-4xl text-center">
-            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-              Gulf Finance &amp; AI Jobs
+            <h1 className="text-3xl font-bold sm:text-4xl">
+              GCC Careers, Practical AI Training &amp; Business Solutions
             </h1>
             <p className="mt-3 text-lg text-slate-300">
-              The GCC&apos;s specialist portal for Finance &amp; AI careers
+              Find Finance and AI opportunities, build skills you can use at work,
+              and explore AI solutions for your business.
             </p>
             {/* Trust pills */}
             <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
@@ -43,6 +49,10 @@ export default async function HomePage() {
                   {pill}
                 </span>
               ))}
+            </div>
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <Link href="/jobs" className="rounded-md bg-white px-5 py-3 text-sm font-semibold text-primary">Find Jobs</Link>
+              <Link href="/ai-training" className="rounded-md border border-white/60 px-5 py-3 text-sm font-semibold text-white">Explore AI Training</Link>
             </div>
             <div className="mt-6">
               <HeroSearch />
@@ -181,6 +191,20 @@ export default async function HomePage() {
               No AI jobs yet. Check back soon.
             </p>
           )}
+        </section>
+
+        <section className="border-y border-gray-200 bg-white px-4 py-12 sm:px-6">
+          <div className="mx-auto max-w-6xl">
+            <h2 className="text-2xl font-bold">Learn AI. Put it to work.</h2>
+            <p className="mt-3 text-gray-600">Practical skills for your career and AI workflows for your business.</p>
+            <div className="mt-6 grid gap-6 md:grid-cols-3">
+              {[
+                { title: "AI Training for Individuals", text: "Explore AI for finance, reporting and everyday productivity.", href: "/ai-training", action: "Explore Training" },
+                { title: "Corporate AI Training", text: "Discuss practical workshops shaped around your team's tasks.", href: "/ai-training#corporate", action: "Train Your Team" },
+                { title: "AI Solutions", text: "Explore automation for reporting, documents and recruitment.", href: "/ai-solutions", action: "Explore Solutions" },
+              ].map(service => <article key={service.href} className="rounded-lg border border-gray-200 p-5"><h3 className="text-lg font-bold">{service.title}</h3><p className="mt-3 text-sm leading-6 text-gray-600">{service.text}</p><Link href={service.href} className="mt-5 inline-block text-sm font-semibold text-finance underline underline-offset-4">{service.action}</Link></article>)}
+            </div>
+          </div>
         </section>
 
         {/* CTA banner */}

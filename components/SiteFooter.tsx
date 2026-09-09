@@ -16,8 +16,8 @@ export function SiteFooter() {
               <span className="text-sm font-semibold text-primary">{SITE_NAME}</span>
             </div>
             <p className="text-xs leading-5 text-gray-500">
-              The Gulf region&apos;s specialist job board for Finance &amp; AI
-              careers across KSA, UAE, and wider GCC.
+              Finance &amp; AI careers, practical AI training and business
+              solutions across KSA, UAE, and the wider GCC.
             </p>
           </div>
 
@@ -41,6 +41,9 @@ export function SiteFooter() {
               Services
             </h3>
             <ul className="space-y-2 text-sm text-gray-600">
+              <li><Link href="/ai-training" className="hover:text-primary">AI Training</Link></li>
+              <li><Link href="/ai-training#corporate" className="hover:text-primary">Corporate Training</Link></li>
+              <li><Link href="/ai-solutions" className="hover:text-primary">AI Solutions</Link></li>
               <li><Link href="/recruiters" className="hover:text-primary">Post a Job</Link></li>
               <li><Link href="/recruiters" className="hover:text-primary">Recruiter Portal</Link></li>
               <li>
