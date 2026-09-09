@@ -179,8 +179,8 @@ export async function POST(request: NextRequest) {
       .select("id, status")
       .single();
 
-    if (jobError) {
-      return NextResponse.json({ error: jobError.message }, { status: 500 });
+    if (jobError || !jobPost) {
+      return NextResponse.json({ error: jobError?.message ?? "Could not confirm the saved job." }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, profile_id: profile.id, job_post: jobPost });

@@ -62,6 +62,7 @@ export function RecruiterClient() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submitState === "submitting") return;
     const formElement = event.currentTarget;
     setSubmitState("submitting");
     setMessage("");
@@ -115,12 +116,12 @@ export function RecruiterClient() {
           body: JSON.stringify(payload),
         }),
         15000,
-        "The recruiter submission is taking too long. Please try again."
+        "We could not confirm the submission in time. It may already be saved; please check with the administrator before submitting it again."
       );
 
-      const result = (await response.json()) as { error?: string };
+      const result = (await response.json()) as { error?: string; job_post?: { id: string; status: string } };
 
-      if (!response.ok) {
+      if (!response.ok || !result.job_post?.id) {
         setSubmitState("error");
         setMessage(result.error ?? "Could not submit your job. Please try again.");
         return;
@@ -131,7 +132,7 @@ export function RecruiterClient() {
       setScreeningRequested(true);
       setSubmitState("success");
       setMessage(
-        "Thanks. Your job has been submitted for review. Most approved roles are published within 10 minutes."
+        `Your job has been saved for review. Reference: ${result.job_post.id}. It will be published after admin approval.`
       );
     } catch (error) {
       setSubmitState("error");

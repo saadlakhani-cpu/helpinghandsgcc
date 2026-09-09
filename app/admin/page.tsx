@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdminRefresh } from "@/app/admin/_components/AdminRefresh";
 import {
   getAdminStats,
   getManualJobImportRuns,
@@ -533,6 +534,7 @@ export default async function AdminPage() {
             </span>
           </div>
           <div className="flex items-center gap-4">
+            <AdminRefresh />
             <Link
               href="/"
               className="text-sm text-gray-500 hover:text-primary"
