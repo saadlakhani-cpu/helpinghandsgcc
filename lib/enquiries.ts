@@ -1,6 +1,6 @@
 export const enquiryTopics = {
-  individual: ["AI for Finance Professionals", "AI Productivity at Work"],
-  corporate: ["Corporate AI Workshops"],
+  individual: ["AI for Finance Professionals", "AI for Supply Chain", "AI for HR", "AI for Sales", "AI Productivity at Work"],
+  corporate: ["Corporate AI Workshops", "AI for Finance Professionals", "AI for Supply Chain", "AI for HR", "AI for Sales"],
   solution: [
     "Finance reporting and workflow automation",
     "Document and invoice extraction",

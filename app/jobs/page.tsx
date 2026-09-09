@@ -1,4 +1,5 @@
 import { JobsListing } from "@/components/jobs/JobsListing";
+import { JobPortalNav } from "@/components/JobPortalNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { getFilterOptions } from "@/lib/jobs/filter-options";
@@ -31,6 +32,7 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
+      <JobPortalNav />
       <JobsListing
         initialFilters={filters}
         initialData={jobsData}

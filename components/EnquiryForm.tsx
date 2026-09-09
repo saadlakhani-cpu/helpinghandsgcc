@@ -202,7 +202,7 @@ export function EnquiryForm({
           {busy
             ? "Submitting..."
             : type === "individual"
-              ? "Register Interest"
+              ? "Enquire About Training"
               : type === "corporate"
                 ? "Request Corporate Training"
                 : "Discuss Your Requirement"}

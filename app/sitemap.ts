@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { trainingTracks } from "@/lib/training";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const revalidate = 3600; // regenerate hourly
@@ -7,12 +8,13 @@ const COUNTRY_SLUGS = ["uae", "ksa", "qatar", "kuwait", "bahrain", "oman"];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://gulffinancejobs.com";
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.helpinghandsgcc.com";
 
   const now = new Date();
 
   // ── Static pages ──────────────────────────────────────────────────────────
   const staticPages: MetadataRoute.Sitemap = [
+    ...trainingTracks.map((track) => ({ url: `${base}/ai-training/${track.slug}`, lastModified: now, changeFrequency: "monthly" as const, priority: 0.8 })),
     { url: `${base}/ai-training`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/ai-solutions`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/`, lastModified: now, changeFrequency: "daily", priority: 1.0 },

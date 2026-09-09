@@ -11,13 +11,13 @@ export function SiteFooter() {
           <div>
             <div className="mb-3 flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-xs font-bold text-white">
-                GF
+                HH
               </div>
               <span className="text-sm font-semibold text-primary">{SITE_NAME}</span>
             </div>
             <p className="text-xs leading-5 text-gray-500">
-              Finance &amp; AI careers, practical AI training and business
-              solutions across KSA, UAE, and the wider GCC.
+              Practical AI training and business solutions across the GCC,
+              with a dedicated Finance and AI job portal.
             </p>
           </div>
 

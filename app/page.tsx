@@ -1,173 +1,45 @@
 import Image from "next/image";
 import Link from "next/link";
-import { HeroSearch } from "@/components/HeroSearch";
-import { JobCard } from "@/components/JobCard";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ServiceHero } from "@/components/ServiceHero";
 import { ServiceTiles } from "@/components/ServiceTiles";
-import { getHomePageData } from "@/lib/jobs/home-data";
-import { CV_REVIEW_ROUTE, RECRUITER_FORM_URL } from "@/lib/constants";
-import { formatHoursAgo } from "@/lib/utils/date";
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+import { CONTACT_EMAIL } from "@/lib/constants";
+
 export const metadata = {
-  title: "Helping Hands GCC | Careers, AI Training & Business Solutions",
-  description:
-    "Find GCC Finance and AI jobs, build practical AI skills, and explore solutions for your business.",
+  title: { absolute: "Helping Hands GCC | AI Training & Solutions" },
+  description: "Practical AI training for Finance, Supply Chain, HR and Sales. Explore individual learning, corporate workshops and AI business solutions.",
+  alternates: { canonical: "/" },
 };
-export default async function HomePage() {
-  const { financeCount, aiCount, lastUpdated, latestFinance, latestAi } =
-    await getHomePageData();
+export default function HomePage() {
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
       <main className="flex-1">
-        <ServiceHero
-          eyebrow="CAREERS · SKILLS · BUSINESS"
-          title="Helping Hands GCC"
-          description="Find your next role. Build practical AI skills. Put AI to work in your business."
-          image="/images/services/workshop.webp"
-          action="Find Jobs"
-          href="/jobs"
-          secondary={{ label: "Explore Training", href: "/ai-training" }}
-        />
-        <section className="border-b border-gray-200 bg-white px-4 py-6 sm:px-6">
-          <HeroSearch />
-          <div className="mx-auto mt-5 flex max-w-6xl flex-wrap justify-center gap-6 text-sm text-gray-600">
-            <span>
-              <strong className="text-finance">
-                {financeCount.toLocaleString()}
-              </strong>{" "}
-              Finance jobs
-            </span>
-            <span>
-              <strong className="text-ai">{aiCount.toLocaleString()}</strong> AI
-              jobs
-            </span>
-            <span>Updated {formatHoursAgo(lastUpdated)}</span>
-          </div>
-        </section>
+        <ServiceHero eyebrow="AI TRAINING & BUSINESS SOLUTIONS" title="Helping Hands GCC" description="Build practical AI skills. Put them to work in your business. Training for Finance, Supply Chain, HR and Sales." image="/images/services/workshop.webp" action="Explore Training" href="/ai-training" secondary={{ label: "Discuss Your AI Needs", href: "/ai-solutions#enquire" }} />
         <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-          <div className="mb-8">
-            <p className="text-sm font-semibold text-finance">YOUR NEXT STEP</p>
-            <h2 className="mt-2 text-3xl font-bold">
-              Learn AI. Put it to work.
-            </h2>
-          </div>
+          <p className="text-sm font-semibold text-finance">FOUR FUNCTIONS. PRACTICAL AI.</p>
+          <h2 className="mt-2 text-3xl font-bold">AI training for the work you do</h2>
+          <p className="mb-8 mt-4 max-w-2xl leading-7 text-gray-600">Choose your track. Learn as an individual or discuss a workshop for your corporate team.</p>
           <ServiceTiles />
         </section>
-        <section className="border-y border-gray-200 bg-emerald-50/60 px-4 py-12 sm:px-6">
-          <div className="mx-auto max-w-6xl">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <h2 className="text-2xl font-bold">See what AI can do at work</h2>
-              <span className="text-xs font-semibold text-finance">
-                EXAMPLE WORKFLOW
-              </span>
-            </div>
-            <div className="mt-7 grid items-center gap-8 md:grid-cols-2">
-              <div className="relative aspect-[3/2] overflow-hidden rounded-lg">
-                <Image
-                  src="/images/services/workflow.webp"
-                  alt="Illustrative invoice, extracted spreadsheet and report"
-                  fill
-                  sizes="(max-width:768px) 100vw, 50vw"
-                  className="object-cover"
-                />
-              </div>
-              <div>
-                <ol className="space-y-5">
-                  {[
-                    "Start with your documents",
-                    "Extract and organise key fields",
-                    "Review the result with your team",
-                  ].map((step, i) => (
-                    <li key={step} className="flex items-center gap-4">
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-finance text-sm font-bold text-white">
-                        {i + 1}
-                      </span>
-                      <span className="font-semibold">{step}</span>
-                    </li>
-                  ))}
-                </ol>
-                <Link
-                  href="/ai-solutions"
-                  className="mt-8 inline-block font-semibold text-finance"
-                >
-                  Explore AI Solutions &rarr;
-                </Link>
-              </div>
-            </div>
+        <section className="border-y border-gray-200 bg-emerald-50/60 px-4 py-14 sm:px-6">
+          <div className="mx-auto grid max-w-6xl items-center gap-10 md:grid-cols-2">
+            <div className="relative aspect-[3/2] overflow-hidden rounded-lg"><Image src="/images/services/workflow.webp" alt="Illustrative document extraction workflow with an invoice, spreadsheet and report" fill sizes="(max-width:768px) 100vw, 50vw" className="object-cover" /></div>
+            <div><p className="text-sm font-semibold text-finance">AI SOLUTIONS</p><h2 className="mt-3 text-3xl font-bold">From repetitive tasks to useful workflows</h2><p className="mt-4 leading-7 text-gray-700">Explore document extraction, reporting automation and internal knowledge assistants. Start with a business problem, agree the scope, and keep your team in control.</p><p className="mt-3 text-xs text-gray-500">Illustrative document-to-report workflow.</p><Link href="/ai-solutions" className="mt-6 inline-block rounded-md bg-finance px-5 py-3 text-sm font-semibold text-white">Explore AI Solutions &rarr;</Link></div>
           </div>
         </section>
-        {[
-          {
-            title: "Latest Finance Jobs",
-            category: "Finance",
-            jobs: latestFinance,
-          },
-          { title: "Latest AI Jobs", category: "AI", jobs: latestAi },
-        ].map((group) => (
-          <section
-            key={group.category}
-            className="mx-auto max-w-6xl px-4 py-12 sm:px-6"
-          >
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-2xl font-bold">{group.title}</h2>
-              <Link
-                href={`/jobs?category=${group.category}`}
-                className="text-sm font-semibold text-finance"
-              >
-                View all &rarr;
-              </Link>
-            </div>
-            {group.jobs.length ? (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {group.jobs.map((job) => (
-                  <JobCard key={job.id} job={job} />
-                ))}
-              </div>
-            ) : (
-              <p className="py-6 text-gray-500">
-                No roles to display yet. Check back soon.
-              </p>
-            )}
-          </section>
-        ))}
-        <section className="border-t border-gray-200 bg-white px-4 py-12 sm:px-6">
-          <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-3">
-            {[
-              {
-                title: "A stronger CV",
-                text: "Request a review for your next finance or AI opportunity.",
-                href: CV_REVIEW_ROUTE,
-                action: "Request CV Review",
-              },
-              {
-                title: "Find your next hire",
-                text: "Submit a role for review and reach GCC professionals.",
-                href: RECRUITER_FORM_URL,
-                action: "For Recruiters",
-              },
-              {
-                title: "Jobs that match you",
-                text: "Set your preferences and subscribe for relevant roles.",
-                href: "/subscribe",
-                action: "Create Job Alerts",
-              },
-            ].map((s) => (
-              <div key={s.title}>
-                <h2 className="text-xl font-bold">{s.title}</h2>
-                <p className="mt-3 text-sm leading-6 text-gray-600">{s.text}</p>
-                <Link
-                  className="mt-4 inline-block text-sm font-semibold text-finance"
-                  href={s.href}
-                >
-                  {s.action} &rarr;
-                </Link>
-              </div>
-            ))}
-          </div>
+        <section id="about" className="mx-auto grid max-w-6xl scroll-mt-6 gap-8 px-4 py-14 sm:px-6 md:grid-cols-2">
+          <div><p className="text-sm font-semibold text-finance">ABOUT HELPING HANDS GCC</p><h2 className="mt-3 text-3xl font-bold">Practical learning. Business application.</h2></div>
+          <div><p className="leading-7 text-gray-600">We bring together role-specific AI training and business solution enquiries for professionals and teams across the GCC. Our focus is the work people actually do: reports, planning, people operations and customer relationships.</p><p className="mt-4 leading-7 text-gray-600">Discuss your goals before booking. Training scope, delivery, dates and pricing are confirmed individually.</p></div>
+        </section>
+        <section className="border-y border-gray-200 bg-white px-4 py-10 sm:px-6">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-6"><div><p className="text-sm font-semibold text-finance">ALSO FROM HELPING HANDS GCC</p><h2 className="mt-2 text-2xl font-bold">Your next opportunity starts here</h2><p className="mt-3 max-w-xl text-sm leading-6 text-gray-600">Explore Finance and AI jobs, request a CV review, set up alerts or post a role through our dedicated Job Portal.</p></div><Link href="/jobs" className="rounded-md border border-finance px-5 py-3 text-sm font-semibold text-finance">Visit Job Portal &rarr;</Link></div>
+        </section>
+        <section id="contact" className="mx-auto max-w-6xl scroll-mt-6 px-4 py-14 sm:px-6">
+          <h2 className="text-3xl font-bold">What would you like to build or learn?</h2>
+          <div className="mt-6 flex flex-wrap gap-4"><Link href="/ai-training#enquire" className="rounded-md bg-finance px-5 py-3 text-sm font-semibold text-white">Enquire About Training</Link><Link href="/ai-solutions#enquire" className="rounded-md border border-finance px-5 py-3 text-sm font-semibold text-finance">Discuss Your AI Needs</Link></div>
+          <a href={`mailto:${CONTACT_EMAIL}`} className="mt-6 inline-block break-all text-sm text-gray-600 underline">{CONTACT_EMAIL}</a>
         </section>
       </main>
       <SiteFooter />

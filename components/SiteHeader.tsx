@@ -3,17 +3,20 @@ import { AuthNav } from "@/components/AuthNav";
 function Navigation() {
   return (
     <>
-      <Link href="/jobs" className="hover:text-finance">
-        Jobs
-      </Link>
       <Link href="/ai-training" className="hover:text-finance">
         AI Training
       </Link>
       <Link href="/ai-solutions" className="hover:text-finance">
         AI Solutions
       </Link>
-      <Link href="/recruiters" className="hover:text-finance">
-        For Recruiters
+      <Link href="/jobs" className="hover:text-finance">
+        Job Portal
+      </Link>
+      <Link href="/#about" className="hover:text-finance">
+        About
+      </Link>
+      <Link href="/#contact" className="hover:text-finance">
+        Contact
       </Link>
       <Link href="/profile" className="hover:text-finance">
         Profile

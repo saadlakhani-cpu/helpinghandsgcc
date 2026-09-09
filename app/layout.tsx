@@ -7,10 +7,10 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 const BASE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://gulffinancejobs.com";
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.helpinghandsgcc.com";
 
 const DEFAULT_DESCRIPTION =
-  "Find Finance and AI jobs across Saudi Arabia, UAE, Qatar, Kuwait, Bahrain and Oman. Investment banking, private equity, machine learning, data science roles updated daily.";
+  "Practical AI training for Finance, Supply Chain, HR and Sales. Corporate workshops, AI business solutions and a dedicated GCC job portal.";
 
 const GA_MEASUREMENT_ID =
   process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "G-C600NLP5SE";
@@ -18,7 +18,7 @@ const GA_MEASUREMENT_ID =
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
-    default: "Helping Hands GCC | Careers, AI Training & Solutions",
+    default: "Helping Hands GCC | AI Training & Solutions",
     template: "%s | Helping Hands GCC",
   },
   description: DEFAULT_DESCRIPTION,
@@ -34,14 +34,14 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     type: "website",
-    siteName: "Gulf Finance & AI Jobs",
-    title: "Gulf Finance & AI Jobs Portal",
+    siteName: "Helping Hands GCC",
+    title: "Helping Hands GCC | AI Training & Solutions",
     description: DEFAULT_DESCRIPTION,
     url: BASE_URL,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Gulf Finance & AI Jobs Portal",
+    title: "Helping Hands GCC | AI Training & Solutions",
     description: DEFAULT_DESCRIPTION,
   },
   robots: {
