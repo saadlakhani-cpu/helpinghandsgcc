@@ -1,15 +1,15 @@
+import Image from "next/image";
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { ServiceHero } from "@/components/ServiceHero";
 import { EnquiryForm } from "@/components/EnquiryForm";
-
 export const metadata: Metadata = {
   title: "Practical AI Training",
   description:
-    "Register interest in practical AI training for finance professionals, individuals and corporate teams across the GCC.",
+    "Explore practical AI training for finance professionals and corporate teams across the GCC.",
   alternates: { canonical: "/ai-training" },
 };
-
 export default function TrainingPage({
   searchParams,
 }: {
@@ -19,119 +19,159 @@ export default function TrainingPage({
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
       <main className="flex-1">
-        <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-          <p className="text-sm font-semibold text-finance">
-            Helping Hands GCC
-          </p>
-          <h1 className="mt-3 text-3xl font-bold">Practical AI Training</h1>
-          <p className="mt-4 max-w-2xl text-lg leading-7 text-gray-600">
-            Build skills you can use in your next report, presentation or
-            working day. Explore training for yourself or your team.
-          </p>
-          <div className="mt-8 grid gap-6 md:grid-cols-2">
-            <article className="rounded-lg border border-gray-200 bg-white p-6">
-              <p className="text-sm font-semibold text-finance">
-                For finance professionals
-              </p>
-              <h2 className="mt-2 text-xl font-bold">
-                AI for Finance Professionals
-              </h2>
-              <p className="mt-3 leading-6 text-gray-600">
-                For accountants, analysts and finance managers who want to use
-                AI in everyday work.
-              </p>
-              <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-6 text-gray-700">
-                <li>Draft management commentary and presentation outlines.</li>
-                <li>
-                  Use AI to explain formulas and support spreadsheet analysis.
-                </li>
-                <li>
-                  Check outputs and handle confidential information carefully.
-                </li>
-              </ul>
-              <a
-                href="?type=individual&topic=AI%20for%20Finance%20Professionals#enquire"
-                className="mt-6 inline-block font-semibold text-finance underline underline-offset-4"
+        <ServiceHero
+          eyebrow="LEARN IT. USE IT."
+          title="Practical AI Training"
+          description="Bring AI into your next report, presentation or working day."
+          image="/images/services/workshop.webp"
+          action="Explore Workshops"
+          href="#workshops"
+          secondary={{ label: "For Corporate Teams", href: "#corporate" }}
+        />
+        <section
+          id="workshops"
+          className="mx-auto max-w-6xl px-4 py-14 sm:px-6"
+        >
+          <p className="text-sm font-semibold text-finance">FOR INDIVIDUALS</p>
+          <h2 className="mt-2 text-3xl font-bold">
+            Skills that belong in your working day
+          </h2>
+          <div className="mt-8 grid gap-8 md:grid-cols-2">
+            {[
+              {
+                title: "AI for Finance Professionals",
+                image: "finance",
+                audience: "Accountants · Analysts · Finance managers",
+                outcomes: [
+                  "Draft reporting commentary",
+                  "Work confidently with spreadsheets",
+                  "Check AI outputs before using them",
+                ],
+              },
+              {
+                title: "AI Productivity at Work",
+                image: "workshop",
+                audience: "Business professionals · Teams · Beginners",
+                outcomes: [
+                  "Write clearer prompts",
+                  "Turn notes into useful drafts",
+                  "Build repeatable workflows",
+                ],
+              },
+            ].map((course) => (
+              <article
+                key={course.title}
+                className="overflow-hidden rounded-lg border border-gray-200 bg-white"
               >
-                Register Interest
-              </a>
-            </article>
-            <article className="rounded-lg border border-gray-200 bg-white p-6">
-              <p className="text-sm font-semibold text-finance">
-                For working professionals
-              </p>
-              <h2 className="mt-2 text-xl font-bold">
-                AI Productivity at Work
-              </h2>
-              <p className="mt-3 leading-6 text-gray-600">
-                For people looking to make research, writing and document tasks
-                more efficient.
-              </p>
-              <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-6 text-gray-700">
-                <li>Write clear prompts for everyday business tasks.</li>
-                <li>
-                  Turn documents and notes into useful drafts and action lists.
-                </li>
-                <li>
-                  Evaluate answers and build repeatable personal workflows.
-                </li>
-              </ul>
-              <a
-                href="?type=individual&topic=AI%20Productivity%20at%20Work#enquire"
-                className="mt-6 inline-block font-semibold text-finance underline underline-offset-4"
-              >
-                Register Interest
-              </a>
-            </article>
+                <div className="relative aspect-[16/9]">
+                  <Image
+                    src={`/images/services/${course.image}.webp`}
+                    alt={
+                      course.image === "finance"
+                        ? "Illustrative finance professional using a spreadsheet"
+                        : "Illustrative practical AI workshop"
+                    }
+                    fill
+                    sizes="(max-width:768px) 100vw, 50vw"
+                    className="object-cover"
+                  />
+                </div>
+                <div className="p-6">
+                  <p className="text-xs font-semibold text-finance">
+                    {course.audience}
+                  </p>
+                  <h3 className="mt-3 text-2xl font-bold">{course.title}</h3>
+                  <ul className="mt-4 space-y-2 text-sm text-gray-600">
+                    {course.outcomes.map((outcome) => (
+                      <li key={outcome} className="flex gap-2">
+                        <span
+                          aria-hidden="true"
+                          className="font-bold text-finance"
+                        >
+                          &#10003;
+                        </span>
+                        {outcome}
+                      </li>
+                    ))}
+                  </ul>
+                  <a
+                    href={`?type=individual&topic=${encodeURIComponent(course.title)}#enquire`}
+                    className="mt-6 inline-block rounded-md bg-finance px-5 py-2.5 text-sm font-semibold text-white"
+                  >
+                    Register Interest
+                  </a>
+                </div>
+              </article>
+            ))}
           </div>
+          <p className="mt-4 text-xs text-gray-500">
+            Illustrative workshop imagery. Trainer, format, duration, dates and
+            pricing will be confirmed before booking.
+          </p>
         </section>
         <section
           id="corporate"
-          className="border-y border-gray-200 bg-white px-4 py-12 sm:px-6"
+          className="border-y border-gray-200 bg-emerald-50/60 px-4 py-12 sm:px-6"
         >
-          <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-2">
+          <div className="mx-auto grid max-w-6xl items-center gap-10 md:grid-cols-2">
+            <div className="relative aspect-[3/2] overflow-hidden rounded-lg">
+              <Image
+                src="/images/services/workshop.webp"
+                alt="Illustrative team workshop"
+                fill
+                sizes="(max-width:768px) 100vw, 50vw"
+                className="object-cover"
+              />
+            </div>
             <div>
               <p className="text-sm font-semibold text-finance">
-                For corporate teams
+                FOR CORPORATE TEAMS
               </p>
-              <h2 className="mt-2 text-2xl font-bold">
-                Learn AI through your team&apos;s real tasks
+              <h2 className="mt-3 text-3xl font-bold">
+                Your team. Your tasks. Practical AI.
               </h2>
               <p className="mt-4 leading-7 text-gray-600">
-                Discuss a workshop for your finance, recruitment or operations
-                team, shaped around their experience and business needs.
+                Discuss a session built around the work your finance,
+                recruitment or operations team actually does.
               </p>
+              <div className="mt-6 flex flex-wrap gap-2">
+                {[
+                  "2-hour awareness",
+                  "Half-day workshop",
+                  "Full-day department session",
+                ].map((s) => (
+                  <span
+                    key={s}
+                    className="rounded-md border border-emerald-200 bg-white px-3 py-2 text-xs font-medium"
+                  >
+                    {s}
+                  </span>
+                ))}
+              </div>
               <a
                 href="?type=corporate#enquire"
-                className="mt-6 inline-block rounded-md bg-finance px-5 py-3 text-sm font-semibold text-white"
+                className="mt-7 inline-block rounded-md bg-finance px-5 py-3 text-sm font-semibold text-white"
               >
                 Request Corporate Training
               </a>
-            </div>
-            <div className="space-y-4 text-gray-700">
-              <h3 className="font-semibold">Workshop formats to discuss</h3>
-              <p>2-hour AI awareness session</p>
-              <p>Half-day practical workshop</p>
-              <p>Full-day workshop focused on a department</p>
-              <p className="border-t border-gray-200 pt-4 text-sm leading-6 text-gray-500">
-                Delivery format, trainer, duration, dates and pricing will be
-                confirmed before booking. Registration of interest does not
-                reserve a place.
-              </p>
             </div>
           </div>
         </section>
         <section
           id="enquire"
-          className="mx-auto grid max-w-6xl scroll-mt-6 gap-10 px-4 py-12 sm:px-6 md:grid-cols-2"
+          className="mx-auto grid max-w-6xl scroll-mt-6 gap-10 px-4 py-14 sm:px-6 md:grid-cols-2"
         >
           <div>
-            <h2 className="text-2xl font-bold">
+            <p className="text-sm font-semibold text-finance">
+              LET&apos;S GET STARTED
+            </p>
+            <h2 className="mt-3 text-3xl font-bold">
               Tell us what you want to learn
             </h2>
-            <p className="mt-4 leading-7 text-gray-600">
-              Register your interest as an individual or share your corporate
-              training needs. We will follow up by email with next steps.
+            <p className="mt-4 max-w-md leading-7 text-gray-600">
+              Share your interests or your team&apos;s needs. We will follow up by
+              email. Registering interest does not reserve a place or require
+              payment.
             </p>
           </div>
           <EnquiryForm

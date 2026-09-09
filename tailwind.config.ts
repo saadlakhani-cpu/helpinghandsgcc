@@ -9,9 +9,9 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: "#0F172A",
-        finance: "#3B82F6",
-        ai: "#8B5CF6",
+        primary: "#17251F",
+        finance: "#047857",
+        ai: "#0E7490",
         recruiter: "#F97316",
         remote: "#10B981",
         hybrid: "#F59E0B",

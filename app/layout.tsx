@@ -18,8 +18,8 @@ const GA_MEASUREMENT_ID =
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
-    default: "Gulf Finance & AI Jobs Portal",
-    template: "%s | Gulf Finance & AI Jobs",
+    default: "Helping Hands GCC | Careers, AI Training & Solutions",
+    template: "%s | Helping Hands GCC",
   },
   description: DEFAULT_DESCRIPTION,
   keywords: [

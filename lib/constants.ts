@@ -1,4 +1,4 @@
-export const SITE_NAME = "Gulf Finance & AI Jobs";
+export const SITE_NAME = "Helping Hands GCC";
 export const CONTACT_EMAIL = "adminhhgcc@gmail.com";
 export const CV_REVIEW_FORM_URL =
   process.env.NEXT_PUBLIC_CV_REVIEW_FORM_URL ||

@@ -45,52 +45,62 @@ export function HeroSearch() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-6xl">
       <form
         onSubmit={handleSubmit}
-        className="flex flex-col gap-3 rounded-lg bg-white p-4 shadow-sm sm:flex-row sm:items-center"
+        className="grid gap-3 bg-white sm:grid-cols-2 lg:grid-cols-[minmax(180px,2fr)_minmax(100px,1fr)_minmax(120px,1fr)_minmax(120px,1fr)_auto]"
       >
         <input
           type="text"
           placeholder="Job title or keyword..."
+          aria-label="Job title or keyword"
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
-          className="flex-1 rounded-md border border-gray-200 px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-finance focus:ring-1 focus:ring-finance"
+          className="min-w-0 rounded-md border border-gray-200 px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-finance focus:ring-1 focus:ring-finance"
         />
         <input
           type="text"
           placeholder="City (e.g. Dubai)"
+          aria-label="City"
           value={city}
           onChange={(e) => setCity(e.target.value)}
-          className="rounded-md border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-finance focus:ring-1 focus:ring-finance sm:w-32"
+          className="min-w-0 rounded-md border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-finance focus:ring-1 focus:ring-finance"
         />
         <select
+          aria-label="Country"
           value={country}
           onChange={(e) => setCountry(e.target.value)}
-          className="rounded-md border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-finance focus:ring-1 focus:ring-finance sm:w-32"
+          className="min-w-0 rounded-md border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-finance focus:ring-1 focus:ring-finance"
         >
-          <option className="bg-white text-gray-900" value="">All Countries</option>
           {GULF_COUNTRIES.map((c) => (
-            <option className="bg-white text-gray-900" key={c.value || "all"} value={c.value}>
+            <option
+              className="bg-white text-gray-900"
+              key={c.value || "all"}
+              value={c.value}
+            >
               {c.label}
             </option>
           ))}
         </select>
         <select
+          aria-label="Category"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="rounded-md border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-finance focus:ring-1 focus:ring-finance sm:w-32"
+          className="min-w-0 rounded-md border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-finance focus:ring-1 focus:ring-finance"
         >
-          <option className="bg-white text-gray-900" value="">All Categories</option>
           {CATEGORIES.map((c) => (
-            <option className="bg-white text-gray-900" key={c.value || "all"} value={c.value}>
+            <option
+              className="bg-white text-gray-900"
+              key={c.value || "all"}
+              value={c.value}
+            >
               {c.label}
             </option>
           ))}
         </select>
         <button
           type="submit"
-          className="rounded-md bg-finance px-6 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700"
+          className="rounded-md bg-finance px-6 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-800"
         >
           Search
         </button>
@@ -104,7 +114,7 @@ export function HeroSearch() {
             key={q}
             type="button"
             onClick={() => handlePopular(q)}
-            className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs text-slate-300 transition hover:bg-white/20 hover:text-white"
+            className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-600 transition hover:border-emerald-300 hover:text-finance"
           >
             {label}
           </button>

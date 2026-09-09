@@ -1,6 +1,10 @@
 {
   "crons": [
     {
+      "path": "/api/cron/contributor-jobs",
+      "schedule": "*/15 * * * *"
+    },
+    {
       "path": "/api/cron/fetch-jobs/layer1",
       "schedule": "30 6 * * 1-4,6"
     },

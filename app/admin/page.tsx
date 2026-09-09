@@ -637,6 +637,7 @@ export default async function AdminPage() {
                 Open Manual Import Screen
               </Link>
               <AdminActions />
+              <Link href="/admin/contributors" className="mt-4 block rounded-md border border-gray-300 px-4 py-3 text-center text-sm font-semibold text-finance">Contributor Management</Link>
               <Link href="/admin/enquiries" className="mt-4 block rounded-md border border-gray-300 px-4 py-3 text-center text-sm font-semibold text-finance">
                 Training &amp; Solution Enquiries
               </Link>
