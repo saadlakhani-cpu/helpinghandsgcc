@@ -5,6 +5,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ServiceHero } from "@/components/ServiceHero";
 import { EnquiryForm } from "@/components/EnquiryForm";
+import { ParticipantFeedback } from "@/components/ParticipantFeedback";
 import { findTrainingTrack, trainingTracks } from "@/lib/training";
 
 type Props = { params: { track: string }; searchParams: { type?: string } };
@@ -38,6 +39,7 @@ export default function TrainingTrackPage({ params, searchParams }: Props) {
             <div><h2 className="text-2xl font-bold">For you or your team</h2><p className="mt-4 leading-7 text-gray-700">Discuss individual learning or a corporate workshop shaped around your department. Exercises use sample or approved, anonymised data, with human review of AI outputs.</p><p className="mt-4 text-sm text-gray-600">The syllabus, trainer, delivery format, duration, dates and pricing will be confirmed before booking. Images are illustrative.</p></div>
           </div>
         </section>
+        {track.slug === "finance" && <ParticipantFeedback full />}
         <section id="enquire" className="mx-auto grid max-w-6xl scroll-mt-6 gap-10 px-4 py-14 sm:px-6 md:grid-cols-2">
           <div><h2 className="text-3xl font-bold">Enquire About Training</h2><p className="mt-4 leading-7 text-gray-600">Tell us about your role or your team. We will follow up by email. This is an enquiry, not a booking or payment.</p></div>
           <EnquiryForm key={searchParams.type || "individual"} types={["individual", "corporate"]} initialType={searchParams.type === "corporate" ? "corporate" : "individual"} initialTopic={track.topic} />

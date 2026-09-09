@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ServiceHero } from "@/components/ServiceHero";
 import { ServiceTiles } from "@/components/ServiceTiles";
+import { ParticipantFeedback } from "@/components/ParticipantFeedback";
 import { CONTACT_EMAIL } from "@/lib/constants";
 
 export const metadata = {
@@ -23,6 +24,7 @@ export default function HomePage() {
           <p className="mb-8 mt-4 max-w-2xl leading-7 text-gray-600">Choose your track. Learn as an individual or discuss a workshop for your corporate team.</p>
           <ServiceTiles />
         </section>
+        <ParticipantFeedback />
         <section className="border-y border-gray-200 bg-emerald-50/60 px-4 py-14 sm:px-6">
           <div className="mx-auto grid max-w-6xl items-center gap-10 md:grid-cols-2">
             <div className="relative aspect-[3/2] overflow-hidden rounded-lg"><Image src="/images/services/workflow.webp" alt="Illustrative document extraction workflow with an invoice, spreadsheet and report" fill sizes="(max-width:768px) 100vw, 50vw" className="object-cover" /></div>
