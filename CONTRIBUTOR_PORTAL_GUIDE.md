@@ -28,14 +28,14 @@
 
 ## Scheduled extraction
 
-- `/api/cron/contributor-jobs` is configured every 15 minutes in `vercel.json` and uses the existing `CRON_SECRET` bearer header.
-- Each run claims at most 3 jobs. This initial capacity is 288 jobs per day if all scheduled runs execute. Larger volumes need batch/concurrency tuning.
+- `/api/cron/contributor-jobs` is configured daily at 06:30 UTC (09:30 Riyadh, approximate on Hobby) in `vercel.json` and uses the existing `CRON_SECRET` bearer header. Vercel rejected the proposed 15-minute schedule under the current plan.
+- Each run claims at most 3 jobs: the daily fallback processes only 3 per day. Use the admin Process button for additional batches. A supported frequent scheduler is still needed before onboarding larger volumes.
 - The admin Process Next 3 Links button runs the same worker immediately.
 - `CONTRIBUTOR_ALLOWED_HOSTS` is an optional comma-separated list of exact source hostnames approved for automated access. It is deliberately empty by default. Do not add sources until permitted access is confirmed. No automatic reading of LinkedIn, Indeed or other restricted sources is enabled by this release.
 - With no approved hosts, the worker moves queued links to Needs details. It does not silently scrape unsupported sites or invent job details.
 - For enabled hosts, the worker reads a single structured JobPosting, checks Finance/AI relevance, and requires an explicit GCC location and posting date. No new AI API key is used.
 - Redirect hosts are revalidated, DNS is pinned to a checked public address, response size is capped and requests are time-limited. Abandoned jobs are recovered using leases. After repeated unfinished attempts they move to Needs details.
-- Vercel must support the 15-minute cron frequency. Hobby scheduling is limited to daily runs; do not change the account plan without owner approval.
+- The requested 15-minute processing frequency remains pending. It requires a compatible scheduler or an owner-approved plan change; no paid upgrade was made.
 
 ## Deployment and tests
 
