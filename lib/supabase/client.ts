@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 
-export function createBrowserClient() {
+export function createBrowserClient(detectSessionInUrl = true) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -8,5 +8,5 @@ export function createBrowserClient() {
     throw new Error("Missing public Supabase environment variables");
   }
 
-  return createClient(url, key);
+  return createClient(url, key, { auth: { detectSessionInUrl } });
 }

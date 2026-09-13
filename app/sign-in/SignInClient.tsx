@@ -25,6 +25,10 @@ export function SignInClient({ returnTo }: { returnTo: string }) {
   const [info, setInfo] = useState<string | null>(null);
 
   useEffect(() => {
+    if (new URLSearchParams(window.location.hash.slice(1)).get("type") === "recovery") {
+      window.location.replace(`/reset-password?returnTo=${encodeURIComponent(safeReturnTo)}${window.location.hash}`);
+      return;
+    }
     const supabase = createBrowserClient();
 
     supabase.auth.getUser().then(({ data }) => {
@@ -118,7 +122,12 @@ export function SignInClient({ returnTo }: { returnTo: string }) {
         },
       });
 
-      if (signUpError) throw signUpError;
+      if (signUpError) {
+        if (signUpError.code === "user_already_exists" || signUpError.code === "email_exists") {
+          throw new Error("This email is already registered. Sign in, or use Forgot or set password below.");
+        }
+        throw signUpError;
+      }
 
       if (data.session?.user?.email_confirmed_at) {
         window.location.replace(safeReturnTo);
@@ -127,7 +136,7 @@ export function SignInClient({ returnTo }: { returnTo: string }) {
 
       setMode("verify");
       setInfo(
-        "We sent a confirmation email. Enter the 6-digit code below, or click the confirmation link in your email."
+        "If this is a new registration, check your inbox for a confirmation code or link. Already registered, including with Google? Sign in or use Forgot or set password below."
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Account creation failed");
@@ -192,7 +201,7 @@ export function SignInClient({ returnTo }: { returnTo: string }) {
 
       if (resendError) throw resendError;
 
-      setInfo("A new confirmation email has been sent.");
+      setInfo("If your account still needs confirmation, a confirmation email has been requested. Already registered? Sign in or set your password below.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not resend code");
     } finally {
@@ -204,7 +213,7 @@ export function SignInClient({ returnTo }: { returnTo: string }) {
     <main className="flex min-h-screen items-center justify-center bg-surface px-4">
       <div className="w-full max-w-md rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
         <Link href="/" className="text-sm font-semibold text-primary">
-          Gulf Finance & AI Jobs
+          Helping Hands GCC
         </Link>
 
         {mode === "verify" ? (
@@ -213,7 +222,7 @@ export function SignInClient({ returnTo }: { returnTo: string }) {
               Verify your email
             </h1>
             <p className="mt-2 text-sm leading-6 text-gray-600">
-              Enter the 6-digit code sent to <strong>{email}</strong>, or use the
+              Enter the verification code for <strong>{email}</strong>, or use the
               confirmation link in your email.
             </p>
 
@@ -423,6 +432,12 @@ export function SignInClient({ returnTo }: { returnTo: string }) {
             </p>
           </>
         )}
+        <p className="mt-5 text-sm text-gray-600">
+          Already registered, or previously used Google?{" "}
+          <Link href={`/reset-password?returnTo=${encodeURIComponent(safeReturnTo)}`} className="text-primary underline">
+            Forgot or set password
+          </Link>
+        </p>
       </div>
     </main>
   );
