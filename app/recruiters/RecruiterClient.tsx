@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { createBrowserClient } from "@/lib/supabase/client";
+import { recruiterReference } from "@/lib/recruiters/reference";
 
 const COUNTRIES = ["KSA", "UAE", "Qatar", "Kuwait", "Bahrain", "Oman"];
 const PROFILE_COUNTRIES = [...COUNTRIES, "Multiple GCC countries"];
@@ -132,7 +133,7 @@ export function RecruiterClient() {
       setScreeningRequested(true);
       setSubmitState("success");
       setMessage(
-        `Your job has been saved for review. Reference: ${result.job_post.id}. It will be published after admin approval.`
+        `Your job has been saved for review. Reference: ${recruiterReference(result.job_post.id)}. It will be published after admin approval.`
       );
     } catch (error) {
       setSubmitState("error");
@@ -164,6 +165,7 @@ export function RecruiterClient() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
+      <p className="text-sm text-gray-600">Fields marked <span className="text-red-700">*</span> are required.</p>
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
         <div className="mb-5">
           <p className="text-xs font-semibold uppercase tracking-wide text-recruiter">
@@ -179,14 +181,14 @@ export function RecruiterClient() {
           <Field label="Contact person name" name="contact_name" required />
           <Field label="Work email" name="work_email" type="email" required />
           <Field label="Phone / WhatsApp" name="phone" />
-          <Field label="Company website" name="company_website" type="url" />
+          <Field label="Company website (optional)" name="company_website" type="url" />
           <Field label="LinkedIn profile" name="linkedin_url" type="url" />
           <Select label="Recruiter country" name="country" options={PROFILE_COUNTRIES} required />
         </div>
 
         <fieldset className="mt-4">
           <legend className="text-sm font-medium text-gray-700">
-            Hiring categories
+            Hiring categories <span className="text-red-700" aria-hidden="true">*</span>
           </legend>
           <div className="mt-2 flex flex-wrap gap-3">
             {CATEGORIES.map((category) => (
@@ -281,7 +283,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="text-sm font-medium text-gray-700">{label}</span>
+      <span className="text-sm font-medium text-gray-700">{label}{required && <span className="text-red-700" aria-hidden="true"> *</span>}</span>
       <input
         name={name}
         type={type}
@@ -306,7 +308,7 @@ function Select({
 }) {
   return (
     <label className="block">
-      <span className="text-sm font-medium text-gray-700">{label}</span>
+      <span className="text-sm font-medium text-gray-700">{label}{required && <span className="text-red-700" aria-hidden="true"> *</span>}</span>
       <select
         name={name}
         required={required}
@@ -334,7 +336,7 @@ function TextArea({
 }) {
   return (
     <label className="mt-4 block">
-      <span className="text-sm font-medium text-gray-700">{label}</span>
+      <span className="text-sm font-medium text-gray-700">{label}{required && <span className="text-red-700" aria-hidden="true"> *</span>}</span>
       <textarea
         name={name}
         required={required}

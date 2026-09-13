@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { recruiterReference } from "@/lib/recruiters/reference";
 import { AdminRefresh } from "@/app/admin/_components/AdminRefresh";
 import {
   getAdminStats,
@@ -19,6 +20,7 @@ import { AdminActions } from "@/app/admin/_components/AdminActions";
 import { RecruiterJobActions } from "@/app/admin/_components/RecruiterJobActions";
 
 export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 // ── Date helper ───────────────────────────────────────────────────────────────
 
@@ -400,6 +402,7 @@ function RecruiterJobsTable({ posts }: { posts: RecruiterJobPostRow[] }) {
               <tr key={post.id} className="hover:bg-gray-50">
                 <Td className="max-w-xs">
                   <span className="line-clamp-1 font-medium">{post.title}</span>
+                  <span className="text-xs text-gray-500" title={post.id}>{recruiterReference(post.id)}</span>
                 </Td>
                 <Td className="max-w-[140px] truncate">{post.company}</Td>
                 <Td>

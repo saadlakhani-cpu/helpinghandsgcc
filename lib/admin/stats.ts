@@ -343,7 +343,7 @@ export async function getRecruiterJobPosts(
 ): Promise<RecruiterJobPostRow[]> {
   const supabase = createAdminClient();
 
-  const { data: posts } = await supabase
+  const { data: posts, error: postsError } = await supabase
     .from("recruiter_job_posts")
     .select(
       "id, title, category, company, country, city, status, screening_requested, created_at, recruiter_profile_id"
@@ -351,6 +351,7 @@ export async function getRecruiterJobPosts(
     .order("created_at", { ascending: false })
     .limit(limit);
 
+  if (postsError) throw new Error("Could not load recruiter submissions. Please refresh.");
   if (!posts || posts.length === 0) return [];
 
   const profileIds = unique(

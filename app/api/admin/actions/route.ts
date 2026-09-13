@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { generateJobFingerprint } from "@/lib/ingest/fingerprint";
 import { importJobLinks } from "@/lib/ingest/import-job-links";
 import { generateJobSlug } from "@/lib/ingest/slug";
@@ -40,6 +41,9 @@ export async function POST(request: NextRequest) {
     });
     const data = await res.json().catch(() => ({}));
     return NextResponse.json(data, { status: res.status });
+  }
+  if (request.headers.get("origin") && request.headers.get("origin") !== request.nextUrl.origin) {
+    return NextResponse.json({ error: "Invalid request origin" }, { status: 403 });
   }
 
   if (action === "import-job-links") {
@@ -138,18 +142,25 @@ export async function POST(request: NextRequest) {
 
     const supabase = createAdminClient();
 
-    if (action === "approve-recruiter-job" || action === "reject-recruiter-job") {
-      const status = action === "approve-recruiter-job" ? "approved" : "rejected";
-      const { error } = await supabase
+    if (action === "reject-recruiter-job") {
+      const status = "rejected";
+      const { data: rejected, error } = await supabase
         .from("recruiter_job_posts")
         .update({ status, updated_at: new Date().toISOString() })
-        .eq("id", recruiterJobId);
+        .eq("id", recruiterJobId)
+        .in("status", ["pending_review", "approved"])
+        .is("published_job_id", null)
+        .select("id, status")
+        .maybeSingle();
 
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
       }
 
+      if (!rejected) return NextResponse.json({ error: "Job was not rejected. Refresh its current status; published jobs cannot be rejected here." }, { status: 409 });
+      revalidatePath("/admin");
       return NextResponse.json({
+        status: rejected.status,
         message: `Recruiter job ${status.replace("_", " ")}.`,
       });
     }
@@ -167,9 +178,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (post.status === "published" && post.published_job_id) {
-      return NextResponse.json({ message: "Recruiter job is already published." });
-    }
+    if (post.status === "rejected") return NextResponse.json({ error: "Rejected jobs cannot be published." }, { status: 409 });
 
     const applyUrl =
       post.apply_url ||
@@ -177,7 +186,15 @@ export async function POST(request: NextRequest) {
     const description = [post.description, post.requirements]
       .filter(Boolean)
       .join("\n\nRequirements:\n");
-    const slug = generateJobSlug(post.title, post.city);
+    const targetId = post.published_job_id || post.id;
+    const { data: existing, error: existingError } = await supabase.from("jobs").select("id, slug, is_active").eq("id", targetId).maybeSingle();
+    if (existingError) return NextResponse.json({ error: "Could not verify publication. Please retry." }, { status: 500 });
+    if (post.status === "published" && existing) {
+      revalidatePath("/admin");
+      revalidatePath("/jobs");
+      return NextResponse.json({ message: existing.is_active ? "Job is published." : "Job was published but is now inactive or expired.", status: "published", slug: existing.slug });
+    }
+    const slug = existing?.slug || `${generateJobSlug(post.title, post.city).replace(/-[^-]+$/, "")}-${targetId}`;
     const fingerprint = generateJobFingerprint(
       post.title,
       post.company,
@@ -187,7 +204,8 @@ export async function POST(request: NextRequest) {
 
     const { data: publishedJob, error: publishError } = await supabase
       .from("jobs")
-      .insert({
+      .upsert({
+        id: targetId,
         title: post.title,
         slug,
         category: post.category,
@@ -207,7 +225,7 @@ export async function POST(request: NextRequest) {
         job_fingerprint: fingerprint,
         freshness_score: 100,
         source_priority: 10,
-      })
+      }, { onConflict: "id" })
       .select("id, slug")
       .single();
 
@@ -218,21 +236,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { error: updateError } = await supabase
+    const { data: updated, error: updateError } = await supabase
       .from("recruiter_job_posts")
       .update({
         status: "published",
         published_job_id: publishedJob.id,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", recruiterJobId);
+      .eq("id", recruiterJobId)
+      .select("id, status")
+      .single();
 
-    if (updateError) {
-      return NextResponse.json({ error: updateError.message }, { status: 500 });
+    if (updateError || !updated) {
+      return NextResponse.json({ error: "The live job was saved, but its review status could not be updated. Retry Approve & Publish to finish; it will reuse the same job." }, { status: 500 });
     }
+    revalidatePath("/admin");
+    revalidatePath("/jobs");
+    revalidatePath(`/jobs/${publishedJob.slug}`);
 
     return NextResponse.json({
       message: "Recruiter job published to live jobs.",
+      status: updated.status,
       slug: publishedJob.slug,
     });
   }

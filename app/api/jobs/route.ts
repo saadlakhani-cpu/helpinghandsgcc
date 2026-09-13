@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const supabase = createAdminClient();
     const result = await queryJobs(supabase, params);
 
-    return NextResponse.json(result);
+    return NextResponse.json(result, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("GET /api/jobs error:", error);
     return NextResponse.json(

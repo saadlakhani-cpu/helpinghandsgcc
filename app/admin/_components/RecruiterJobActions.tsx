@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 
 type RecruiterAction =
   | "approve-recruiter-job"
@@ -11,6 +12,8 @@ type RecruiterAction =
 type ActionResult = {
   message?: string;
   error?: string;
+  status?: string;
+  slug?: string;
 };
 
 export function RecruiterJobActions({
@@ -23,8 +26,12 @@ export function RecruiterJobActions({
   const router = useRouter();
   const [loading, setLoading] = useState<RecruiterAction | null>(null);
   const [message, setMessage] = useState("");
+  const [currentStatus, setCurrentStatus] = useState(status);
+  const [slug, setSlug] = useState<string>();
+  useEffect(() => setCurrentStatus(status), [status]);
 
   async function runAction(action: RecruiterAction) {
+    if (loading) return;
     setLoading(action);
     setMessage("");
 
@@ -33,6 +40,7 @@ export function RecruiterJobActions({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action, recruiterJobId }),
+        signal: AbortSignal.timeout(25000),
       });
       const result = (await response.json()) as ActionResult;
 
@@ -42,6 +50,8 @@ export function RecruiterJobActions({
       }
 
       setMessage(result.message ?? "Done.");
+      if (result.status) setCurrentStatus(result.status);
+      setSlug(result.slug);
       router.refresh();
     } catch {
       setMessage("Network error.");
@@ -50,19 +60,19 @@ export function RecruiterJobActions({
     }
   }
 
-  const isPublished = status === "published";
-  const isRejected = status === "rejected";
+  const isPublished = currentStatus === "published";
+  const isRejected = currentStatus === "rejected";
 
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
-          disabled={loading !== null || isPublished}
+          disabled={loading !== null || isPublished || isRejected}
           onClick={() => runAction("approve-recruiter-job")}
           className="rounded border border-green-200 bg-green-50 px-2 py-1 text-xs font-medium text-green-700 transition hover:bg-green-100 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {loading === "approve-recruiter-job" ? "..." : "Approve"}
+          {loading === "approve-recruiter-job" ? "Publishing..." : isPublished ? "Published" : "Approve & Publish"}
         </button>
         <button
           type="button"
@@ -72,16 +82,9 @@ export function RecruiterJobActions({
         >
           {loading === "reject-recruiter-job" ? "..." : "Reject"}
         </button>
-        <button
-          type="button"
-          disabled={loading !== null || isPublished || isRejected}
-          onClick={() => runAction("publish-recruiter-job")}
-          className="rounded border border-orange-200 bg-orange-50 px-2 py-1 text-xs font-medium text-recruiter transition hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {loading === "publish-recruiter-job" ? "..." : "Publish"}
-        </button>
       </div>
-      {message && <p className="max-w-[180px] text-xs text-gray-500">{message}</p>}
+      {message && <p role="status" className="max-w-[220px] text-xs text-gray-500">{message}</p>}
+      {slug && <Link href={`/jobs/${slug}`} className="inline-block text-xs text-finance underline">View published job</Link>}
     </div>
   );
 }
